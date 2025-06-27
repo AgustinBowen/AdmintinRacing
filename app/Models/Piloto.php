@@ -1,0 +1,40 @@
+<?php
+// app/Models/Piloto.php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Piloto extends Model
+{
+    use HasUuids;
+    
+    protected $fillable = ['nombre', 'pais'];
+    public $timestamps = false;
+    
+    public function campeonatos()
+    {
+        return $this->belongsToMany(Campeonato::class, 'pilotos_campeonato')
+                    ->withPivot('numero_auto');
+    }
+    
+    public function carrerasFinales()
+    {
+        return $this->hasMany(CarreraFinal::class);
+    }
+    
+    public function clasificaciones()
+    {
+        return $this->hasMany(Clasificacion::class);
+    }
+    
+    public function entrenamientos()
+    {
+        return $this->hasMany(Entrenamiento::class);
+    }
+    
+    public function seriesClasificatorias()
+    {
+        return $this->hasMany(SerieClasificatoria::class);
+    }
+}
