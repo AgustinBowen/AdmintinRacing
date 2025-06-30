@@ -48,7 +48,7 @@
             [
                 'type' => 'link',
                 'label' => 'Editar',
-                'route' => route('admin.sesiones.edit', $sesionDefinicion),
+                'route' => route('admin.sesiones.edit', $sesion),
                 'class' => 'btn-primary-modern',
                 'icon' => 'fas fa-edit'
             ],
