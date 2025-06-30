@@ -1,7 +1,7 @@
 <div class="card-modern">
     <div class="card-header-modern d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-semibold">{{ $title }}</h5>
-        @if(isset($createRoute))
+        @if(isset($createRoute) && $items->count() >= 1)
             <a href="{{ $createRoute }}" class="btn-modern btn-primary-modern">
                 <i class="fas fa-plus me-1"></i> {{ $createText ?? 'Crear' }}
             </a>
@@ -40,8 +40,12 @@
                                                 {{ data_get($item, $column['field']) }}
                                             </span>
                                         @elseif($column['type'] === 'date')
+                                            @php
+                                                $rawDate = data_get($item, $column['field']);
+                                                $date = $rawDate ? \Illuminate\Support\Carbon::parse($rawDate) : null;
+                                            @endphp
                                             <span style="color: hsl(var(--primary));">
-                                                {{ data_get($item, $column['field'])?->format($column['format'] ?? 'd/m/Y') }}
+                                                {{ $date ? $date->format($column['format'] ?? 'd/m/Y') : '—' }}
                                             </span>
                                         @elseif($column['type'] === 'boolean')
                                             <span class="badge-modern {{ data_get($item, $column['field']) ? 'badge-success' : 'badge-destructive' }}">
@@ -73,18 +77,16 @@
                                                 </a>
                                             @endif
                                             @if($showDelete ?? true)
-                                                <form action="{{ route($routePrefix . '.destroy', $item) }}" 
-                                                      method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="btn-modern btn-destructive-modern p-2"
-                                                            style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;"
-                                                            onclick="return confirm('¿Estás seguro de eliminar este elemento?')"
-                                                            title="Eliminar">
-                                                        <i class="fas fa-trash" style="font-size: 0.75rem;"></i>
-                                                    </button>
-                                                </form>
+                                                <button type="button" 
+                                                        class="btn-modern btn-destructive-modern p-2"
+                                                        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;"
+                                                        title="Eliminar"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#{{ $deleteModalId ?? 'deleteModal' }}"
+                                                        data-delete-url="{{ route($routePrefix . '.destroy', $item) }}"
+                                                        data-item-name="{{ data_get($item, $nameField ?? 'name') ?? 'este elemento' }}">
+                                                    <i class="fas fa-trash" style="font-size: 0.75rem;"></i>
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
@@ -119,3 +121,13 @@
         @endif
     </div>
 </div>
+
+{{-- Incluir el modal de eliminación --}}
+@include('components.admin.delete-modal', [
+    'modalId' => $deleteModalId ?? 'deleteModal',
+    'title' => $deleteModalTitle ?? 'Confirmar Eliminación',
+    'message' => $deleteModalMessage ?? '¿Estás seguro de que deseas eliminar',
+    'warningText' => $deleteModalWarning ?? 'Esta acción no se puede deshacer.',
+    'confirmText' => $deleteModalConfirmText ?? 'Eliminar',
+    'cancelText' => $deleteModalCancelText ?? 'Cancelar'
+])

@@ -25,7 +25,7 @@ return new class extends Migration
                 'serie_clasificatoria_3',
                 'carrera_final'
             ]);
-            $table->date('fecha')->nullable();
+            $table->date('fecha_sesion')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
 

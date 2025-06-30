@@ -21,15 +21,18 @@
             --header-height: 64px;
 
             /* Colors - Light Mode */
-            --primary: 0 0% 0%;
+            --primary: 0 0% 3.9%;
             /* Black */
             --secondary: 0 0% 100%;
             /* White */
-            --accent: 0 84% 60%;
+            --accent: 0 72.2% 50.6%;
             /* Red */
             --muted: 210 40% 98%;
             /* Light gray */
-            --muted-foreground: 215 16% 47%;
+            --badge-background: 82.7 78% 55.5%;
+            --badge-background-hover: 82 84.5% 67.1%;
+            --muted-foreground: 0 0% 3.9%;
+            --placeholder: 0 0% 45.3%;
             --border: 214 32% 91%;
             --input: 214 32% 91%;
             --ring: 0 84% 60%;
@@ -189,7 +192,7 @@
         }
 
         .input-modern::placeholder {
-            color: hsl(var(--muted-foreground));
+            color: hsl(var(--placeholder));
         }
 
         .badge-modern {
@@ -203,7 +206,7 @@
         }
 
         .badge-primary {
-            background-color: hsl(var(--primary));
+            background-color: hsl(var(--accent));
             color: hsl(var(--secondary));
         }
 
@@ -260,7 +263,7 @@
         }
 
         .sidebar-brand .brand-icon {
-            color: hsl(var(--accent));
+            color: hsl(var(--primary));
             margin-right: 0.5rem;
         }
 
@@ -480,6 +483,214 @@
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: hsl(var(--muted-foreground));
         }
+
+        /* Modal Styles - shadcn inspired */
+        .modal {
+            --modal-backdrop: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-backdrop {
+            background-color: var(--modal-backdrop);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-dialog {
+            margin: 1.75rem auto;
+            max-width: 32rem;
+        }
+
+        .modal-content {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) + 2px);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            animation: modalSlideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            background-color: hsl(var(--card));
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: hsl(var(--card-foreground));
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            color: hsl(var(--card-foreground));
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            background-color: hsl(var(--muted) / 0.3);
+            border-top: 1px solid hsl(var(--border));
+            padding: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: hsl(var(--muted-foreground));
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: var(--radius);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .btn-close:hover {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--foreground));
+        }
+
+        .btn-close::before {
+            content: "×";
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        /* Alert/Warning Modal Styles */
+        .modal-warning .modal-title i {
+            color: hsl(var(--warning));
+            margin-right: 0.5rem;
+        }
+
+        .modal-danger .modal-title i {
+            color: hsl(var(--destructive));
+            margin-right: 0.5rem;
+        }
+
+        .modal-success .modal-title i {
+            color: hsl(var(--success));
+            margin-right: 0.5rem;
+        }
+
+        /* Loading state for buttons */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive modal */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 1rem;
+            }
+
+            .modal-footer {
+                flex-direction: column-reverse;
+                gap: 0.5rem;
+            }
+
+            .modal-footer .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Toast/Notification styles (bonus) */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1100;
+        }
+
+        .toast-modern {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            min-width: 300px;
+            animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-success {
+            border-left: 4px solid hsl(var(--success));
+        }
+
+        .toast-error {
+            border-left: 4px solid hsl(var(--destructive));
+        }
+
+        .toast-warning {
+            border-left: 4px solid hsl(var(--warning));
+        }
     </style>
 
     @stack('styles')
@@ -490,8 +701,10 @@
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <h4>
-                <i class="fas fa-flag-checkered brand-icon"></i>
-                <span class="brand-text">1100 Admin</span>
+                <div class="brand-icon">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                <span class="brand-text">AdmintínRacing</span>
             </h4>
         </div>
 
@@ -502,7 +715,12 @@
                     <span>Dashboard</span>
                 </a>
             </li>
-
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Generador de Fechas Automatico</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="{{ route('admin.campeonatos.index') }}" class="nav-link {{ request()->routeIs('admin.campeonatos.*') ? 'active' : '' }}">
                     <i class="fas fa-trophy"></i>

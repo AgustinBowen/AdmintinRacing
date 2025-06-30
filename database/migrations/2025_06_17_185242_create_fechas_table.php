@@ -17,10 +17,10 @@ return new class extends Migration
             $table->string('nombre');
             $table->date('fecha_desde');
             $table->date('fecha_hasta');
-            $table->unsignedBigInteger('circuito');
+            $table->unsignedBigInteger('circuito_id');
 
             $table->foreign('campeonato_id')->references('id')->on('campeonatos')->onDelete('cascade');
-            $table->foreign('circuito')->references('id')->on('circuitos')->onDelete('cascade');
+            $table->foreign('circuito_id')->references('id')->on('circuitos')->onDelete('cascade');
         });
     }
 

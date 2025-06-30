@@ -12,7 +12,7 @@ class FechaController extends Controller
     public function index()
     {
         $fechas = Fecha::with(['campeonato', 'circuito'])
-            ->orderBy('fecha', 'desc')
+            ->orderBy('fecha_desde', 'desc')
             ->paginate(10);
 
         return view('admin.fechas.index', compact('fechas'));
@@ -24,7 +24,7 @@ class FechaController extends Controller
         $campeonatos = Campeonato::pluck('nombre', 'id');
         $circuitos = Circuito::orderBy('nombre')->get();
         $circuitos = Circuito::pluck('nombre', 'id');
-        
+
         return view('admin.fechas.create', compact('campeonatos', 'circuitos'));
     }
 
@@ -35,7 +35,7 @@ class FechaController extends Controller
             'fecha_desde' => 'required|date',
             'fecha_hasta' => 'required|date',
             'campeonato_id' => 'required|exists:campeonatos,id',
-            'circuito' => 'required|exists:circuitos,id',
+            'circuito_id' => 'required|exists:circuitos,id',
         ]);
 
         Fecha::create($validated);
@@ -46,16 +46,18 @@ class FechaController extends Controller
 
     public function show(Fecha $fecha)
     {
-        $fecha->load(['campeonato', 'circuito', 'resultados.piloto']);
-        
+        $fecha->load(['campeonato', 'circuito']);
+
         return view('admin.fechas.show', compact('fecha'));
     }
 
     public function edit(Fecha $fecha)
     {
         $campeonatos = Campeonato::orderBy('anio', 'desc')->get();
+        $campeonatos = Campeonato::pluck('nombre', 'id');
         $circuitos = Circuito::orderBy('nombre')->get();
-        
+        $circuitos = Circuito::pluck('nombre', 'id');
+
         return view('admin.fechas.edit', compact('fecha', 'campeonatos', 'circuitos'));
     }
 

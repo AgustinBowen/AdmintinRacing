@@ -16,6 +16,7 @@
     'emptyMessage' => 'No hay fechas registrados',
     'showView'=> false,
     'showEdit' => true,
+    'showView' => true,
     'columns' => [
         ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
         ['field' => 'fecha_desde', 'label' => 'Fecha Desde', 'type' => 'date'],

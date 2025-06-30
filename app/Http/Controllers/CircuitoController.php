@@ -34,9 +34,7 @@ class CircuitoController extends Controller
     }
 
     public function show(Circuito $circuito)
-    {
-        $circuito->load('fechas.campeonato');
-        
+    { 
         return view('admin.circuitos.show', compact('circuito'));
     }
 

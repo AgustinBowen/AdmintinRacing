@@ -28,7 +28,7 @@ class SesionDefinicionController extends Controller
     public function create()
     {
         $fechas = Fecha::all();
-        $fechas = Fecha::pluck('fecha', 'id');
+        $fechas = Fecha::pluck('nombre', 'id');
         $tipos = SesionDefinicion::TIPOS;
 
         return view('admin.sesiones.create', compact('fechas', 'tipos'));
@@ -41,6 +41,7 @@ class SesionDefinicionController extends Controller
     {
         $validated = $request->validate([
             'fecha_id' => 'required|exists:fechas,id',
+            'fecha_sesion' => 'required|date',
             'tipo' => 'required|in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
         ]);
 
@@ -55,7 +56,7 @@ class SesionDefinicionController extends Controller
      */
     public function show(SesionDefinicion $sesion)
     {
-        $sesion->load('fecha', 'resultados.piloto', 'horarios');
+        $sesion->load('horarios');
         return view('admin.sesiones.show', compact('sesion'));
     }
 
@@ -65,9 +66,10 @@ class SesionDefinicionController extends Controller
     public function edit(SesionDefinicion $sesion)
     {
         $fechas = Fecha::all();
+        $fechas = Fecha::pluck('nombre', 'id');
         $tipos = SesionDefinicion::TIPOS;
 
-        return view('admin.sesiones.edit', compact('sesion', 'fechas', 'tipos', 'estados'));
+        return view('admin.sesiones.edit', compact('sesion', 'fechas', 'tipos'));
     }
 
     /**
@@ -77,6 +79,7 @@ class SesionDefinicionController extends Controller
     {
         $validated = $request->validate([
             'fecha_id' => 'required|exists:fechas,id',
+            'fecha_sesion' => 'required|date',
             'tipo' => 'required|in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
         ]);
 

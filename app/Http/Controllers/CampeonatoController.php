@@ -38,8 +38,17 @@ class CampeonatoController extends Controller
 
     public function show(Campeonato $campeonato)
     {
-        $campeonato->load(['fechas.circuito', 'fechas.resultados.piloto']);
-        
+        $campeonato->load([
+            'fechas' => function ($query) {
+                $query->orderBy('fecha_desde', 'asc'); 
+            },
+            'fechas.circuito', 
+        ]);
+
+        $campeonato->fechas->each(function ($fecha, $index) {
+            $fecha->numero_fecha = $index + 1;
+        });
+
         return view('admin.campeonatos.show', compact('campeonato'));
     }
 
@@ -57,7 +66,7 @@ class CampeonatoController extends Controller
 
         $campeonato->update($validated);
 
-        return redirect()->route('campeonatos.index')
+        return redirect()->route('admin.campeonatos.index')
             ->with('success', 'Campeonato actualizado exitosamente.');
     }
 

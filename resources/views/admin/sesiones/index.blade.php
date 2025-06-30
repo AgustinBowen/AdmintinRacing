@@ -14,15 +14,13 @@
     'createRoute' => route('admin.sesiones.create'),
     'createText' => 'Nuevo Sesión',
     'emptyMessage' => 'No hay sesiones registradas',
-    'showView'=> false,
+    'showView'=> true,
     'showEdit' => true,
+    'showDelete' => true,
     'columns' => [
-        ['label' => 'ID', 'field' => 'id'],
-        ['label' => 'Tipo de Sesión', 'field' => 'tipo'],
-        ['label' => 'Fecha de Inicio', 'field' => 'fecha_inicio'],
-        ['label' => 'Fecha de Fin', 'field' => 'fecha_fin'],
-        ['label' => 'Estado', 'field' => 'estado'],
-        ['label' => 'Acciones', 'field' => 'actions']
+        ['label' => 'Tipo de Sesión', 'field' => 'tipo','type' => 'badge'],
+        ['label' => 'Fecha de la sesión', 'field' => 'fecha_sesion','type' => 'date'],
+        ['label' => 'Fecha correspondiente', 'field' => 'fecha.nombre','type' => 'text'],
     ]
 ])
 @endsection

@@ -14,12 +14,14 @@
     'createRoute' => route('admin.horarios.create'),
     'createText' => 'Nuevo Horario',
     'emptyMessage' => 'No hay horarios registrados',
-    'showView'=> false,
+    'showView'=> true,
     'showEdit' => true,
     'columns' => [
-        ['field' => 'fecha', 'label' => 'Fecha', 'type' => 'text'],
-        ['tipo_sesion']
-
+        ['label' => 'Fecha','field' => 'fecha.nombre',  'type' => 'text'],
+        ['label' => 'Sesión','field' => 'sesion.tipo',  'type' => 'badge'],
+        ['label' => 'Horario','field' => 'horario','type' => 'time'],
+        ['label' => 'Duracion','field' => 'duracion',  'type' => 'text'],
+        ['label' => 'Observaciones','field' => 'observaciones',  'type' => 'text']
     ]
 ])
 @endsection

@@ -14,16 +14,13 @@ return new class extends Migration
     {
         Schema::create('horarios', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('sesion_id');
+            $table->uuid('sesion_id')->unique();
             $table->uuid('fecha_id');
             $table->timestamp('horario');
-            $table->string('duracion')->nullable(); // Laravel maneja intervalos como strings
-            $table->text('observaciones')->nullable(); // Corregido el typo "obserevaciones"
+            $table->string('duracion')->nullable(); 
+            $table->text('observaciones')->nullable(); 
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
-
-            // Clave primaria compuesta
-            $table->primary(['id', 'sesion_id']);
 
             // Foreign keys
             $table->foreign('fecha_id')->references('id')->on('fechas');

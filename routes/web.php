@@ -8,24 +8,28 @@ use App\Http\Controllers\CircuitoController;
 use App\Http\Controllers\FechaController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\SesionDefinicionController;
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Middleware\AdminMiddleware;
 
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    if (Auth::check()) {
+        if (Auth::user()->is_admin) {
+            return redirect('/admin');
+        }
+        return view('admin.dashboard');
+    }
+    return redirect('/login');
+})->name('home');
 
-Route::get('/dashboard', function () {
-    return redirect()->route('admin.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Rutas de autenticación
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Rutas del panel de administración
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard principal
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -46,12 +50,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('horarios', HorarioController::class);
 
     // Gestión de Sesiones
-    Route::resource('sesiones', SesionDefinicionController::class);
+    Route::resource('sesiones', SesionDefinicionController::class)->parameters([
+        'sesiones' => 'sesion'
+    ]);
 
     // Rutas adicionales para funcionalidades específicas
     Route::get('campeonatos/{campeonato}/pilotos', [CampeonatoController::class, 'managePilotos'])->name('campeonatos.pilotos');
     Route::post('campeonatos/{campeonato}/pilotos', [CampeonatoController::class, 'attachPiloto'])->name('campeonatos.pilotos.attach');
     Route::delete('campeonatos/{campeonato}/pilotos/{piloto}', [CampeonatoController::class, 'detachPiloto'])->name('campeonatos.pilotos.detach');
 });
-
-require __DIR__ . '/auth.php';

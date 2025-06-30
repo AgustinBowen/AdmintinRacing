@@ -5,19 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', '1100Admin') }}</title>
 
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
+            /* Layout */
+            --sidebar-width: 280px;
+            --header-height: 64px;
+
             /* Colors - Light Mode */
-            --primary: 0 0% 0%;           /* Black */
-            --secondary: 0 0% 100%;       /* White */
-            --accent: 0 84% 60%;          /* Red */
-            --muted: 210 40% 98%;         /* Light gray */
-            --muted-foreground: 215 16% 47%;
+            --primary: 0 0% 3.9%;
+            /* Black */
+            --secondary: 0 0% 100%;
+            /* White */
+            --accent: 0 72.2% 50.6%;
+            /* Red */
+            --muted: 210 40% 98%;
+            /* Light gray */
+            --badge-background: 82.7 78% 55.5%;
+            --badge-background-hover: 82 84.5% 67.1%;
+            --muted-foreground: 0 0% 3.9%;
+            --placeholder: 0 0% 45.3%;
             --border: 214 32% 91%;
             --input: 214 32% 91%;
             --ring: 0 84% 60%;
@@ -25,108 +38,221 @@
             --foreground: 222 84% 5%;
             --card: 0 0% 100%;
             --card-foreground: 222 84% 5%;
-            
+            --popover: 0 0% 100%;
+            --popover-foreground: 222 84% 5%;
+            --destructive: 0 84% 60%;
+            --destructive-foreground: 210 40% 98%;
+            --success: 142 76% 36%;
+            --success-foreground: 355 100% 97%;
+            --warning: 38 92% 50%;
+            --warning-foreground: 48 96% 89%;
+
             /* Shadows */
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
             /* Border Radius */
             --radius: 0.5rem;
         }
-        
+
         [data-theme="dark"] {
-            --primary: 0 0% 0%;           /* Black - mantener negro como primario */
-            --secondary: 0 0% 100%;       /* White - blanco para contraste */
-            --accent: 0 84% 60%;          /* Red - rojo se mantiene igual */
-            --muted: 217 33% 17%;         /* Dark gray */
+            --primary: 0 0% 0%;
+            /* Black - mantener negro como primario */
+            --secondary: 0 0% 100%;
+            /* White - blanco para contraste */
+            --accent: 0 84% 60%;
+            /* Red - rojo se mantiene igual */
+            --muted: 217 33% 17%;
+            /* Dark gray */
             --muted-foreground: 215 20% 65%;
             --border: 217 33% 17%;
             --input: 217 33% 17%;
             --ring: 0 84% 60%;
-            --background: 224 71% 4%;     /* Fondo oscuro */
-            --foreground: 213 31% 91%;    /* Texto claro */
+            --background: 224 71% 4%;
+            /* Fondo oscuro */
+            --foreground: 213 31% 91%;
+            /* Texto claro */
             --card: 224 71% 4%;
             --card-foreground: 213 31% 91%;
+            --popover: 224 71% 4%;
+            --popover-foreground: 213 31% 91%;
+            --destructive: 0 84% 60%;
+            --destructive-foreground: 210 40% 98%;
+            --success: 142 76% 36%;
+            --success-foreground: 355 100% 97%;
+            --warning: 38 92% 50%;
+            --warning-foreground: 48 96% 89%;
         }
-        
+
         * {
             border-color: hsl(var(--border));
         }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: hsl(var(--background));
             color: hsl(var(--foreground));
-            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+            font-size: 14px;
             line-height: 1.5;
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
             -webkit-font-smoothing: antialiased;
+            margin: 0;
+            padding: 0;
         }
-        
+
+        /* Auth Layout Styles */
         .auth-container {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--background)) 100%);
+            position: relative;
         }
-        
-        .auth-logo {
+
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 25% 25%, hsl(var(--accent) / 0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 75% 75%, hsl(var(--accent) / 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .auth-brand {
             margin-bottom: 2rem;
+            text-align: center;
+            z-index: 1;
         }
-        
-        .auth-logo svg {
-            width: 5rem;
-            height: 5rem;
-            fill: hsl(var(--muted-foreground));
+
+        .auth-brand-icon {
+            width: 4rem;
+            height: 4rem;
+            background-color: hsl(var(--primary));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: var(--shadow-lg);
         }
-        
+
+        .auth-brand-icon i {
+            font-size: 2rem;
+            color: hsl(var(--secondary));
+        }
+
+        .auth-brand h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: hsl(var(--foreground));
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .auth-brand p {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
         .auth-card {
             width: 100%;
             max-width: 28rem;
             background-color: hsl(var(--card));
             border: 1px solid hsl(var(--border));
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-lg);
+            border-radius: calc(var(--radius) + 4px);
+            box-shadow: var(--shadow-xl);
             padding: 2rem;
+            z-index: 1;
+            position: relative;
         }
-        
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: hsl(var(--card-foreground));
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .auth-header p {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        /* Form Styles */
         .form-group {
             margin-bottom: 1.5rem;
         }
-        
+
         .form-label {
             display: block;
             font-size: 0.875rem;
             font-weight: 500;
-            color: hsl(var(--foreground));
+            color: hsl(var(--card-foreground));
             margin-bottom: 0.5rem;
         }
-        
+
         .form-input {
             display: flex;
             width: 100%;
             border-radius: var(--radius);
             border: 1px solid hsl(var(--border));
             background-color: hsl(var(--background));
-            padding: 0.5rem 0.75rem;
+            padding: 0.75rem;
             font-size: 0.875rem;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             color: hsl(var(--foreground));
+            box-sizing: border-box;
         }
-        
+
         .form-input:focus {
             outline: none;
             border-color: hsl(var(--ring));
             box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
         }
-        
+
         .form-input::placeholder {
-            color: hsl(var(--muted-foreground));
+            color: hsl(var(--placeholder));
         }
-        
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-input {
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 2px);
+            margin-right: 0.5rem;
+            accent-color: hsl(var(--primary));
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: hsl(var(--card-foreground));
+            cursor: pointer;
+        }
+
+        /* Button Styles */
         .btn-primary {
             display: inline-flex;
             align-items: center;
@@ -141,68 +267,158 @@
             text-decoration: none;
             background-color: hsl(var(--primary));
             color: hsl(var(--secondary));
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1rem;
             width: 100%;
+            box-sizing: border-box;
         }
-        
+
         .btn-primary:hover {
             background-color: hsl(var(--primary) / 0.9);
             color: hsl(var(--secondary));
             transform: translateY(-1px);
             box-shadow: var(--shadow-md);
         }
-        
+
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
-        
+
+        /* Alert Styles */
+        .alert-error {
+            background-color: hsl(var(--destructive) / 0.1);
+            color: hsl(var(--destructive));
+            border: 1px solid hsl(var(--destructive) / 0.2);
+            border-radius: var(--radius);
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-error i {
+            margin-right: 0.5rem;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: hsl(var(--muted-foreground));
+            font-size: 1.125rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--foreground));
+        }
+
+        /* Links */
         .auth-link {
             color: hsl(var(--accent));
             text-decoration: none;
             font-weight: 500;
+            font-size: 0.875rem;
             transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         .auth-link:hover {
             color: hsl(var(--accent) / 0.8);
         }
-        
+
+        /* Utilities */
         .text-center {
             text-align: center;
         }
-        
-        .text-sm {
-            font-size: 0.875rem;
-        }
-        
+
         .mt-4 {
             margin-top: 1rem;
         }
-        
-        .error-message {
-            color: hsl(var(--accent));
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .auth-container {
+                padding: 1rem;
+            }
+
+            .auth-card {
+                padding: 1.5rem;
+            }
+
+            .auth-brand {
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body data-theme="light">
-    <div class="auth-container">
-        <div class="auth-logo">
-            <a href="/">
-                <svg viewBox="0 0 316 316" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M305.8 81.125C305.77 80.995 305.69 80.885 305.65 80.755C305.56 80.525 305.49 80.285 305.37 80.075C305.29 79.935 305.17 79.815 305.07 79.685C304.94 79.515 304.83 79.325 304.68 79.175C304.55 79.045 304.39 78.955 304.25 78.845C304.09 78.715 303.95 78.575 303.77 78.475L251.32 48.275C249.97 47.495 248.31 47.495 246.96 48.275L194.51 78.475C194.33 78.575 194.19 78.725 194.03 78.845C193.89 78.955 193.73 79.045 193.6 79.175C193.45 79.325 193.34 79.515 193.21 79.685C193.11 79.815 192.99 79.935 192.91 80.075C192.79 80.285 192.72 80.525 192.63 80.755C192.58 80.875 192.51 80.995 192.48 81.125C192.38 81.495 192.33 81.875 192.33 82.265V139.625L148.62 164.795V52.575C148.62 52.185 148.57 51.805 148.47 51.435C148.44 51.305 148.36 51.195 148.32 51.065C148.23 50.835 148.16 50.595 148.04 50.385C147.96 50.245 147.84 50.125 147.74 49.995C147.61 49.825 147.5 49.635 147.35 49.485C147.22 49.355 147.06 49.265 146.92 49.155C146.76 49.025 146.62 48.885 146.44 48.785L93.99 18.585C92.64 17.805 90.98 17.805 89.63 18.585L37.18 48.785C37 48.885 36.86 49.035 36.7 49.155C36.56 49.265 36.4 49.355 36.27 49.485C36.12 49.635 36.01 49.825 35.88 49.995C35.78 50.125 35.66 50.245 35.58 50.385C35.46 50.595 35.39 50.835 35.3 51.065C35.25 51.185 35.18 51.305 35.15 51.435C35.05 51.805 35 52.185 35 52.575V232.235C35 233.795 35.84 235.245 37.18 236.025L142.1 296.425C142.33 296.555 142.58 296.635 142.82 296.725C142.93 296.765 143.04 296.835 143.16 296.865C143.53 296.965 143.9 297.015 144.28 297.015C144.66 297.015 145.03 296.965 145.4 296.865C145.5 296.835 145.59 296.775 145.69 296.745C145.95 296.655 146.21 296.565 146.44 296.435L251.36 236.035C252.72 235.255 253.55 233.815 253.55 232.245V174.885L303.81 145.945C305.17 145.165 306 143.725 306 142.155V82.265C305.95 81.875 305.9 81.495 305.8 81.125ZM144.2 227.205L100.57 202.515L146.39 176.135L196.66 147.195L240.33 172.335L208.29 190.625L144.2 227.205ZM244.75 114.995V164.795L226.39 154.225L201.03 139.625V89.825L219.39 100.395L244.75 114.995ZM249.12 57.105L292.81 82.265L249.12 107.425L205.43 82.265L249.12 57.105ZM114.49 184.425L96.13 194.995V85.305L121.49 70.705L139.85 60.135V169.815L114.49 184.425ZM91.76 27.925L135.45 53.085L91.76 78.245L48.07 53.085L91.76 27.925ZM43.67 60.135L62.03 70.705L87.39 85.305V202.545V202.555V202.565C87.39 202.735 87.44 202.895 87.46 203.055C87.49 203.265 87.49 203.485 87.55 203.695V203.705C87.6 203.875 87.69 204.035 87.76 204.195C87.84 204.375 87.89 204.575 87.99 204.745C87.99 204.745 87.99 204.755 88 204.755C88.09 204.905 88.22 205.035 88.33 205.175C88.45 205.335 88.55 205.495 88.69 205.635L88.7 205.645C88.82 205.765 88.98 205.855 89.12 205.965C89.28 206.085 89.42 206.225 89.59 206.325C89.6 206.325 89.6 206.325 89.61 206.335C89.62 206.335 89.62 206.345 89.63 206.345L139.87 234.775V285.065L43.67 229.705V60.135ZM244.75 229.705L148.58 285.075V234.775L219.8 194.115L244.75 179.875V229.705ZM297.2 139.625L253.49 164.795V114.995L278.85 100.395L297.21 89.825V139.625H297.2Z"/>
-                </svg>
-            </a>
+    <div class="auth-container fade-in">
+        <!-- Brand -->
+        <div class="auth-brand">
+            <div class="auth-brand-icon">
+                <i class="fas fa-flag-checkered"></i>
+            </div>
+            <h1>AdmintínRacing</h1>
+            <p>Panel de Administración</p>
         </div>
 
+        <!-- Auth Card -->
         <div class="auth-card">
-            {{ $slot }}
+            @yield('content')
         </div>
     </div>
+
+    <script>
+        // Theme Management
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    </script>
 </body>
 </html>

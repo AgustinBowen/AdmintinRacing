@@ -49,9 +49,7 @@ class PilotoController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
-            'numero' => 'nullable|integer|min:1|max:999|unique:pilotos,numero,' . $piloto->id,
-            'nacionalidad' => 'nullable|string|max:100',
-            'equipo' => 'nullable|string|max:100',
+            'pais' => 'nullable|string|max:100',
         ]);
 
         $piloto->update($validated);

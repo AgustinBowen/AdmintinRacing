@@ -14,10 +14,14 @@ class SesionDefinicion extends Model
 
     protected $table = 'sesiones_definicion';
 
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'fecha_id',
         'tipo',
-        'fecha', // Fecha de la sesión
+        'fecha_sesion', // Fecha de la sesión
     ];
 
     protected $casts = [
@@ -84,5 +88,4 @@ class SesionDefinicion extends Model
     {
         return self::TIPOS[$this->tipo] ?? $this->tipo;
     }
-
 }

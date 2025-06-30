@@ -1,17 +1,19 @@
 @extends('layouts.admin')
-@section('title', 'Crear Sesion')
+
+@section('title', 'Editar Sesión')
 
 @section('content')
 @include('components.admin.page-header', [
-    'title' => 'Crear Nueva Sesión'
+    'title' => 'Editar Sesión'
 ])
 
 <div class="row">
     <div class="col-md-10">
         @include('components.admin.form', [
-            'title' => 'Información de la Sesion',
-            'action' => route('admin.sesiones.store'),
-            'cancelRoute' => route('admin.sesiones.index'),
+            'title' => 'Información de la Sesión',
+            'action' => route('admin.sesiones.update', $sesion),
+            'method' => 'PUT',
+            'cancelRoute' => route('admin.sesiones.show', $sesion),
             'fields' => [
                 [
                     'name' => 'fecha_id',
@@ -19,7 +21,8 @@
                     'type' => 'select',
                     'options' => $fechas,
                     'optionLabel' => 'nombre',
-                    'optionValue' => 'nombre',
+                    'optionValue' => 'id',
+                    'value' => $sesion->fecha_id,
                     'required' => true,
                     'width' => 8
                 ],
@@ -30,6 +33,7 @@
                     'options' => $tipos,
                     'optionLabel' => 'label',
                     'optionValue' => 'value',
+                    'value' => $sesion->tipo,
                     'required' => true,
                     'width' => 8
                 ],
@@ -37,6 +41,7 @@
                     'name' => 'fecha_sesion',
                     'label' => 'Fecha de la Sesión',
                     'type' => 'date',
+                    'value' => $sesion->fecha_sesion,
                     'required' => true,
                     'width' => 8
                 ],

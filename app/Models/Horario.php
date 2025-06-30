@@ -13,8 +13,8 @@ class Horario extends Model
 
     protected $table = 'horarios';
 
-    // Clave primaria compuesta
-    protected $primaryKey = ['id', 'sesion_id'];
+    // Clave primaria simple
+    protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -49,24 +49,11 @@ class Horario extends Model
     }
 
     /**
-     * Override del método getKey para manejar clave primaria compuesta
+     * Scope para verificar si existe un horario para una sesión
      */
-    public function getKey()
+    public function scopeExistePorSesion($query, $sesionId)
     {
-        $attributes = [];
-        $keyNames = (array) $this->getKeyName();
-        foreach ($keyNames as $key) {
-            $attributes[$key] = $this->getAttribute($key);
-        }
-        return $attributes;
-    }
-
-    /**
-     * Override del método getKeyName para clave primaria compuesta
-     */
-    public function getKeyName()
-    {
-        return $this->primaryKey;
+        return $query->where('sesion_id', $sesionId)->exists();
     }
 
     /**
@@ -99,8 +86,6 @@ class Horario extends Model
     public function getDuracionFormateadaAttribute()
     {
         if (!$this->duracion) return null;
-        
-        // Asumiendo que la duración viene en formato PostgreSQL interval (ej: "01:30:00")
         return $this->duracion;
     }
 }

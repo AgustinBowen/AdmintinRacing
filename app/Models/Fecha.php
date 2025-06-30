@@ -10,7 +10,7 @@ class Fecha extends Model
 {
     use HasUuids;
     
-    protected $fillable = ['campeonato_id', 'nombre', 'fecha_desde', 'fecha_hasta', 'circuito'];
+    protected $fillable = ['campeonato_id', 'nombre', 'fecha_desde', 'fecha_hasta', 'circuito_id'];
     protected $casts = [
         'fecha_desde' => 'date',
         'fecha_hasta' => 'date',
@@ -24,27 +24,11 @@ class Fecha extends Model
     
     public function circuito()
     {
-        return $this->belongsTo(Circuito::class, 'circuito');
+        return $this->belongsTo(Circuito::class, 'circuito_id');
     }
-    
-    public function carrerasFinales()
+    public function sesiones()
     {
-        return $this->hasMany(CarreraFinal::class);
-    }
-    
-    public function clasificaciones()
-    {
-        return $this->hasMany(Clasificacion::class);
-    }
-    
-    public function entrenamientos()
-    {
-        return $this->hasMany(Entrenamiento::class);
-    }
-    
-    public function seriesClasificatorias()
-    {
-        return $this->hasMany(SerieClasificatoria::class);
+        return $this->hasMany(SesionDefinicion::class, 'fecha_id');
     }
     
     public function horarios()
