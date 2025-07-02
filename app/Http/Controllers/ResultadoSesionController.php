@@ -23,7 +23,7 @@ class ResultadoSesionController extends Controller
         $query = ResultadoSesion::query();
 
         // Aplicar búsqueda
-        $searchFields = ['piloto.nombre', 'sesion.nombre']; // Campos en los que buscar
+        $searchFields = ['piloto.nombre', 'sesion.nombre', 'sesion.fecha.nombre']; // Campos en los que buscar
         $this->applySearch($query, $request, $searchFields);
 
         // Definir columnas de la tabla
@@ -59,7 +59,13 @@ class ResultadoSesionController extends Controller
      */
     public function create()
     {
-        $sesiones = SesionDefinicion::pluck('tipo', 'id');
+        $sesiones = SesionDefinicion::with('fecha')
+            ->get()
+            ->mapWithKeys(function ($sesion) {
+                return [
+                    $sesion->id => $sesion->tipo . ' - ' . ($sesion->fecha->nombre ?? 'Sin fecha')
+                ];
+            });
         $pilotos = Piloto::pluck('nombre', 'id');
 
         return view('admin.resultados.create', compact('sesiones', 'pilotos'));
