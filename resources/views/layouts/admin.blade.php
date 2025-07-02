@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
+
 <body data-theme="light">
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
@@ -71,6 +73,12 @@
                 <a href="{{ route('admin.sesiones.index') }}" class="nav-link {{ request()->routeIs('admin.sesiones.*') ? 'active' : '' }}">
                     <i class="fas fa-clock"></i>
                     <span>Sesiones</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.resultados.index') }}" class="nav-link {{ request()->routeIs('admin.resultados.*') ? 'active' : '' }}">
+                    <i class="fas fa-clock"></i>
+                    <span>Resultados</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -235,4 +243,5 @@
     </script>
     @stack('scripts')
 </body>
+
 </html>

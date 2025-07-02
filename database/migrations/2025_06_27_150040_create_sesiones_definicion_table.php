@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('sesiones_definicion', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('fecha_id');
-            $table->string('tipo', [
+            $table->enum('tipo', [
                 'entrenamiento_1',
                 'entrenamiento_2', 
                 'entrenamiento_3',

@@ -4,14 +4,47 @@ namespace App\Http\Controllers;
 
 use App\Models\Circuito;
 use Illuminate\Http\Request;
+use App\Traits\HasSearchAndPagination;
 
 class CircuitoController extends Controller
 {
-    public function index()
-    {
-        $circuitos = Circuito::orderBy('nombre')
-            ->paginate(10);
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = Circuito::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['nombre', 'distancia']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+            ['field' => 'distancia', 'label' => 'Distancia', 'type' => 'badge', 'color' => 'primary'],
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'nombre',
+            'orderDirection' => 'asc',
+            'nameField' => 'nombre'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.circuitos', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $circuitos = $result;
         return view('admin.circuitos.index', compact('circuitos'));
     }
 
@@ -34,7 +67,7 @@ class CircuitoController extends Controller
     }
 
     public function show(Circuito $circuito)
-    { 
+    {
         return view('admin.circuitos.show', compact('circuito'));
     }
 

@@ -6,15 +6,50 @@ use App\Models\Fecha;
 use App\Models\Campeonato;
 use App\Models\Circuito;
 use Illuminate\Http\Request;
+use App\Traits\HasSearchAndPagination;
 
 class FechaController extends Controller
 {
-    public function index()
-    {
-        $fechas = Fecha::with(['campeonato', 'circuito'])
-            ->orderBy('fecha_desde', 'desc')
-            ->paginate(10);
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = Fecha::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['nombre', 'circuito', 'campeonato']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+            ['field' => 'fecha_desde', 'label' => 'Fecha Desde', 'type' => 'date'],
+            ['field' => 'fecha_hasta', 'label' => 'Fecha Hasta', 'type' => 'date'],
+            ['field' => 'circuito.nombre', 'label' => 'Circuito', 'type' => 'text'],
+            ['field' => 'campeonato.nombre', 'label' => 'Campeonato', 'type' => 'text'],
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'fecha_desde',
+            'orderDirection' => 'asc',
+            'nameField' => 'fecha_desde'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.fechas', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $fechas = $result;
         return view('admin.fechas.index', compact('fechas'));
     }
 

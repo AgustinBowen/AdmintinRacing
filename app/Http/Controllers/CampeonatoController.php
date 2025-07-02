@@ -4,17 +4,50 @@ namespace App\Http\Controllers;
 
 use App\Models\Campeonato;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\Paginator;
+use App\Traits\HasSearchAndPagination;
 
 class CampeonatoController extends Controller
 {
-    public function index()
-    {
-        $campeonatos = Campeonato::withCount('fechas')
-            ->orderBy('anio', 'desc')
-            ->paginate(10);
-        Paginator::defaultView('components.admin.paginator');
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = Campeonato::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['nombre', 'anio','fechas']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        $fechasCount = $query->withCount('fechas')->get()->pluck('fechas_count', 'id');
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+            ['field' => 'anio', 'label' => 'Año', 'type' => 'badge', 'color' => 'primary'],
+            ['field' => 'fechas_count', 'label' => 'Fechas', 'type' => 'badge', 'color' => 'primary'],
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'nombre',
+            'orderDirection' => 'asc',
+            'nameField' => 'nombre'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.campeonatos', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $campeonatos = $result;
         return view('admin.campeonatos.index', compact('campeonatos'));
     }
 

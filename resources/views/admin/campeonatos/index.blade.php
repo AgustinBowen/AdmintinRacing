@@ -17,7 +17,7 @@
     'columns' => [
         ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
         ['field' => 'anio', 'label' => 'Año', 'type' => 'badge', 'color' => 'info'],
-        ['field' => 'fechas_count', 'label' => 'Fechas', 'type' => 'badge', 'color' => 'secondary'],
+        ['field' => 'fechas_count', 'label' => 'Fechas', 'type' => 'badge', 'color' => 'primary'],
     ]
 ])
 @endsection

@@ -14,8 +14,9 @@
     'createRoute' => route('admin.pilotos.create'),
     'createText' => 'Nuevo Piloto',
     'emptyMessage' => 'No hay pilotos registrados',
-    'showView'=> true,
+    'showView' => true,
     'showEdit' => true,
+    'showDelete' => true,
     'columns' => [
         ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
         ['field' => 'pais', 'label' => 'País', 'type' => 'badge', 'color' => 'primary'],

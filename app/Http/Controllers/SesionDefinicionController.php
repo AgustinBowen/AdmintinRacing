@@ -7,18 +7,48 @@ use App\Models\Fecha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
+use App\Traits\HasSearchAndPagination;
 
 class SesionDefinicionController extends Controller
 {
-    /**
-     * Display a listing of the sessions.
-     */
-    public function index()
-    {
-        $sesiones = SesionDefinicion::with('fecha')
-            ->orderBy('horario')
-            ->paginate(10);
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = SesionDefinicion::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['fecha.nombre']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['label' => 'Tipo de Sesión', 'field' => 'tipo', 'type' => 'badge'],
+            ['label' => 'Fecha de la sesión', 'field' => 'fecha_sesion', 'type' => 'date'],
+            ['label' => 'Fecha correspondiente', 'field' => 'fecha.nombre', 'type' => 'text'],
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'fecha_sesion',
+            'orderDirection' => 'asc',
+            'nameField' => 'nombre'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.sesiones', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $sesiones = $result;
         return view('admin.sesiones.index', compact('sesiones'));
     }
 

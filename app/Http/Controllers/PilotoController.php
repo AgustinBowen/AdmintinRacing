@@ -4,14 +4,47 @@ namespace App\Http\Controllers;
 
 use App\Models\Piloto;
 use Illuminate\Http\Request;
+use App\Traits\HasSearchAndPagination;
 
 class PilotoController extends Controller
 {
-    public function index()
-    {
-        $pilotos = Piloto::orderBy('nombre')
-            ->paginate(10);
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = Piloto::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['nombre', 'pais']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+            ['field' => 'pais', 'label' => 'País', 'type' => 'badge', 'color' => 'primary'],
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'nombre',
+            'orderDirection' => 'asc',
+            'nameField' => 'nombre'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.pilotos', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $pilotos = $result;
         return view('admin.pilotos.index', compact('pilotos'));
     }
 
@@ -36,7 +69,7 @@ class PilotoController extends Controller
     public function show(Piloto $piloto)
     {
         $piloto;
-        
+
         return view('admin.pilotos.show', compact('piloto'));
     }
 

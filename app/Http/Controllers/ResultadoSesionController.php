@@ -8,18 +8,49 @@ use App\Models\Piloto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
+use App\Traits\HasSearchAndPagination;
 
 class ResultadoSesionController extends Controller
 {
-    /**
-     * Display a listing of the session results.
-     */
-    public function index()
-    {
-        $resultados = ResultadoSesion::with(['sesion', 'piloto'])
-            ->ordenadoPorPosicion()
-            ->paginate(10);
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = ResultadoSesion::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['piloto.nombre', 'sesion.nombre']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['label' => 'Sesión', 'field' => 'sesion.tipo',  'type' => 'badge'],
+            ['label' => 'Piloto', 'field' => 'piloto.nombre',  'type' => 'text'],
+            ['label' => 'Posición', 'field' => 'posicion', 'type' => 'text'],
+            ['label' => 'Fecha', 'field' => 'sesion.fecha.nombre', 'type' => 'badge']
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'nombre',
+            'orderDirection' => 'asc',
+            'nameField' => 'nombre'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.resultados', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $resultados = $result;
         return view('admin.resultados.index', compact('resultados'));
     }
 
@@ -28,8 +59,8 @@ class ResultadoSesionController extends Controller
      */
     public function create()
     {
-        $sesiones = SesionDefinicion::all();
-        $pilotos = Piloto::all();
+        $sesiones = SesionDefinicion::pluck('tipo', 'id');
+        $pilotos = Piloto::pluck('nombre', 'id');
 
         return view('admin.resultados.create', compact('sesiones', 'pilotos'));
     }
@@ -76,8 +107,8 @@ class ResultadoSesionController extends Controller
      */
     public function edit(ResultadoSesion $resultado)
     {
-        $sesiones = SesionDefinicion::all();
-        $pilotos = Piloto::all();
+        $sesiones = SesionDefinicion::pluck('tipo', 'id');
+        $pilotos = Piloto::pluck('nombre', 'id');
 
         return view('admin.resultados.edit', compact('resultado', 'sesiones', 'pilotos'));
     }

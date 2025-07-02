@@ -9,18 +9,50 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
+use App\Traits\HasSearchAndPagination;
 
 class HorarioController extends Controller
 {
-    /**
-     * Display a listing of the schedules.
-     */
-    public function index()
-    {
-        $horarios = Horario::with(['fecha', 'sesion'])
-            ->ordenadoPorHorario()
-            ->paginate(10);
+    use HasSearchAndPagination;
 
+    public function index(Request $request)
+    {
+        // Configurar paginación
+        $this->setupPagination();
+
+        // Crear consulta base
+        $query = Horario::query();
+
+        // Aplicar búsqueda
+        $searchFields = ['fecha', 'sesion']; // Campos en los que buscar
+        $this->applySearch($query, $request, $searchFields);
+
+        // Definir columnas de la tabla
+        $columns = [
+            ['label' => 'Fecha', 'field' => 'fecha.nombre',  'type' => 'text'],
+            ['label' => 'Sesión', 'field' => 'sesion.tipo',  'type' => 'badge'],
+            ['label' => 'Horario', 'field' => 'horario', 'type' => 'time'],
+            ['label' => 'Duracion', 'field' => 'duracion',  'type' => 'text'],
+            ['label' => 'Observaciones', 'field' => 'observaciones',  'type' => 'text']
+        ];
+
+        // Configuración específica
+        $config = [
+            'orderBy' => 'horario',
+            'orderDirection' => 'asc',
+            'nameField' => 'horario'
+        ];
+
+        // Manejar respuesta
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.horarios', $config);
+
+        // Si es AJAX, ya se devolvió la respuesta
+        if ($request->ajax()) {
+            return $result;
+        }
+
+        // Si no es AJAX, devolver la vista completa
+        $horarios = $result;
         return view('admin.horarios.index', compact('horarios'));
     }
 
@@ -130,7 +162,7 @@ class HorarioController extends Controller
             Session::flash('error', 'Error al actualizar el horario: ' . $e->getMessage());
             return Redirect::back()->withInput();
         }
-        
+
         Session::flash('success', 'Horario actualizado exitosamente.');
         return Redirect::route('admin.horarios.index');
     }

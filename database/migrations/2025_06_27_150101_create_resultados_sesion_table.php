@@ -17,7 +17,7 @@ return new class extends Migration
             $table->uuid('sesion_id');
             $table->uuid('piloto_id');
             $table->integer('posicion')->nullable();
-            $table->integer('puntos')->default(0);
+            $table->integer('puntos')->nullable();
             $table->bigInteger('vueltas')->nullable();
             $table->decimal('tiempo_total', 15, 6)->nullable();
             $table->decimal('mejor_tiempo', 15, 6)->nullable();

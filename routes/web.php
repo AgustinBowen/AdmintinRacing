@@ -9,8 +9,8 @@ use App\Http\Controllers\FechaController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\SesionDefinicionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ResultadoSesionController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\AdminMiddleware;
 
 // Rutas de autenticación
@@ -24,15 +24,16 @@ Route::get('/', function () {
 
 // Rutas del panel de administración
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
-    
+
     // Dashboard del administrador
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    
+
     // Gestión de Campeonatos
     Route::resource('campeonatos', CampeonatoController::class);
 
     // Gestión de Pilotos
     Route::resource('pilotos', PilotoController::class);
+    Route::get('/admin/pilotos/search', [PilotoController::class, 'search'])->name('pilotos.search');
 
     // Gestión de Circuitos
     Route::resource('circuitos', CircuitoController::class);
@@ -46,6 +47,11 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     // Gestión de Sesiones
     Route::resource('sesiones', SesionDefinicionController::class)->parameters([
         'sesiones' => 'sesion'
+    ]);
+
+    // Gestión de Sesiones
+    Route::resource('resultados', ResultadoSesionController::class)->parameters([
+        'resultados' => 'resultado'
     ]);
 
     // Rutas adicionales para funcionalidades específicas
