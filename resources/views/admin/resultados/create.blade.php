@@ -16,21 +16,19 @@
                 [
                     'name' => 'sesion_id',
                     'label' => 'Sesión',
-                    'type' => 'select',
-                    'options' => $sesiones,
-                    'optionLabel' => 'tipo_nombre',
-                    'optionValue' => 'id',
+                    'type' => 'searchable_select',
                     'required' => true,
+                    'search_url' => route('admin.resultados.search-sesiones'),
+                    'placeholder' => 'Buscar sesión...',
                     'width' => 6
                 ],
                 [
                     'name' => 'piloto_id',
                     'label' => 'Piloto',
-                    'type' => 'select',
-                    'options' => $pilotos,
-                    'optionLabel' => 'nombre_completo',
-                    'optionValue' => 'id',
+                    'type' => 'searchable_select',
                     'required' => true,
+                    'search_url' => route('admin.resultados.search-pilotos'),
+                    'placeholder' => 'Buscar piloto...',
                     'width' => 6
                 ],
                 [

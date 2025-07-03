@@ -49,10 +49,16 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
         'sesiones' => 'sesion'
     ]);
 
-    // Gestión de Sesiones
+    // Rutas para búsquedas AJAX
+    Route::get('resultados/search-sesiones', [ResultadoSesionController::class, 'searchSesiones'])->name('resultados.search-sesiones');
+    Route::get('resultados/search-pilotos', [ResultadoSesionController::class, 'searchPilotos'])->name('resultados.search-pilotos');
+
+    
+    // Gestión de Resultados de Sesiones
     Route::resource('resultados', ResultadoSesionController::class)->parameters([
         'resultados' => 'resultado'
     ]);
+
 
     // Rutas adicionales para funcionalidades específicas
     Route::get('campeonatos/{campeonato}/pilotos', [CampeonatoController::class, 'managePilotos'])->name('campeonatos.pilotos');

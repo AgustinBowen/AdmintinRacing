@@ -46,6 +46,36 @@ class HorarioController extends Controller
         // Manejar respuesta
         $result = $this->handleIndexResponse($request, $query, $columns, 'admin.horarios', $config);
 
+        // Definir filtros dinámicos
+        $filters = [
+            [
+                'key' => 'sesion_tipo',
+                'type' => 'select',
+                'field' => 'tipo',
+                'placeholder' => 'Todos los tipos',
+                'options' => SesionDefinicion::TIPOS
+            ],
+            [
+                'key' => 'fecha',
+                'type' => 'select',
+                'field' => 'fecha.nombre', // para filtrar por relación
+                'placeholder' => 'Todos los tipos',
+                'options' => Fecha::distinct('fecha')
+                    ->orderBy('fecha', 'desc')
+                    ->pluck('nombre', 'id')
+                    ->toArray()
+            ],
+        ];
+        // Configuración específica
+        $config = [
+            'orderBy' => 'horario_id',
+            'orderDirection' => 'asc',
+            'nameField' => 'id',
+            'filters' => $filters,
+        ];
+
+        $result = $this->handleIndexResponse($request, $query, $columns, 'admin.horarios', $config);
+
         // Si es AJAX, ya se devolvió la respuesta
         if ($request->ajax()) {
             return $result;
@@ -53,7 +83,8 @@ class HorarioController extends Controller
 
         // Si no es AJAX, devolver la vista completa
         $horarios = $result;
-        return view('admin.horarios.index', compact('horarios'));
+        $filterOptions = $this->getFilterOptions($filters);
+        return view('admin.horarios.index', compact('horarios', 'filters', 'filterOptions'));
     }
 
     /**

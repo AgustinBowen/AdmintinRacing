@@ -14,6 +14,17 @@
             @endif
         </div>
     </div>
+    
+    {{-- Incluir filtros si están configurados --}}
+    @if(isset($filters) && count($filters) > 0)
+        <div class="card-body-modern border-bottom">
+            @include('components.partials.filters', [
+                'filters' => $filters,
+                'filterOptions' => $filterOptions ?? []
+            ])
+        </div>
+    @endif
+    
     <div class="p-0">
         @if($items->count() > 0)
         <div id="table-container">
@@ -35,14 +46,16 @@
                 <i class="fas fa-inbox" style="font-size: 3rem; color: hsl(var(--muted-foreground)); opacity: 0.5;"></i>
             </div>
             <h6 class="mb-2" style="color: hsl(var(--foreground));">
-                {{ request('search') ? 'No se encontraron resultados' : 'No hay datos' }}
+                {{ request('search') || collect($filters ?? [])->some(function($filter) { return !empty(request($filter['key'])); }) 
+                    ? 'No se encontraron resultados' 
+                    : 'No hay datos' }}
             </h6>
             <p class="mb-3" style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
-                {{ request('search') 
-                    ? 'Intenta con otros términos de búsqueda' 
+                {{ request('search') || collect($filters ?? [])->some(function($filter) { return !empty(request($filter['key'])); })
+                    ? 'Intenta con otros términos de búsqueda o filtros' 
                     : ($emptyMessage ?? 'No hay elementos para mostrar') }}
             </p>
-            @if(isset($createRoute) && !request('search'))
+            @if(isset($createRoute) && !request('search') && !collect($filters ?? [])->some(function($filter) { return !empty(request($filter['key'])); }))
             <a href="{{ $createRoute }}" class="btn-modern btn-primary-modern">
                 <i class="fas fa-plus me-1"></i> {{ $createText ?? 'Crear el primero' }}
             </a>
@@ -91,6 +104,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function performSearch() {
         const searchTerm = searchInput.value.trim();
         const currentUrl = new URL(window.location.href);
+        const searchParams = new URLSearchParams(currentUrl.searchParams);
+        
+        // Agregar/quitar término de búsqueda
+        if (searchTerm) {
+            searchParams.set('search', searchTerm);
+        } else {
+            searchParams.delete('search');
+        }
+        
+        // Reset pagination
+        searchParams.delete('page');
         
         // Mostrar indicador de carga
         if (tableContainer) {
@@ -99,14 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Construir URL para la búsqueda
-        const searchUrl = new URL(currentUrl.origin + currentUrl.pathname);
-        if (searchTerm) {
-            searchUrl.searchParams.set('search', searchTerm);
-        }
-        searchUrl.searchParams.delete('page'); // Reset pagination
+        const searchUrl = currentUrl.pathname + '?' + searchParams.toString();
         
         // Realizar petición AJAX
-        fetch(searchUrl.href, {
+        fetch(searchUrl, {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
@@ -139,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Actualizar URL del navegador sin recargar
-            history.pushState({}, '', searchUrl.href);
+            history.pushState({}, '', searchUrl);
         })
         .catch(error => {
             console.error('Error en la búsqueda:', error);
@@ -165,6 +185,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentSearch) {
                 url.searchParams.set('search', currentSearch);
             }
+            
+            // Mantener filtros activos
+            const activeFilters = document.querySelectorAll('.filter-select, .filter-input, .filter-daterange');
+            activeFilters.forEach(filter => {
+                if (filter.value.trim()) {
+                    url.searchParams.set(filter.name, filter.value.trim());
+                }
+            });
             
             // Mostrar indicador de carga
             if (tableContainer) {

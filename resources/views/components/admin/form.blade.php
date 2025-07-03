@@ -53,6 +53,19 @@
                             @endforeach
                         </select>
 
+                        @elseif($field['type'] === 'searchable_select')
+                        <select class="input-modern searchable-select @error($field['name']) border-danger @enderror"
+                            id="{{ $field['name'] }}"
+                            name="{{ $field['name'] }}"
+                            data-search-url="{{ $field['search_url'] }}"
+                            data-preview-url="{{ $field['preview_url'] ?? '' }}"
+                            data-placeholder="{{ $field['placeholder'] ?? 'Buscar...' }}"
+                            {{ ($field['required'] ?? false) ? 'required' : '' }}>
+                            @if(!empty($field['value']))
+                            <option value="{{ $field['value'] }}" selected>{{ $field['selected_text'] ?? '' }}</option>
+                            @endif
+                        </select>
+
                         @elseif($field['type'] === 'date')
                         <input type="date"
                             class="input-modern @error($field['name']) border-danger @enderror"
@@ -113,3 +126,71 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // Inicializar selects buscables
+        $('.searchable-select').each(function() {
+            const $select = $(this);
+            const searchUrl = $select.data('search-url');
+            const placeholder = $select.data('placeholder') || 'Buscar...';
+
+            const select2Config = {
+                placeholder: placeholder,
+                allowClear: true,
+                minimumInputLength: 0, // Permitir mostrar resultados sin escribir
+                ajax: {
+                    url: searchUrl,
+                    dataType: 'json',
+                    delay: 300,
+                    data: function(params) {
+                        return {
+                            q: params.term || '',
+                            limit: params.term ? 20 : 5, // 5 elementos para preview, 20 para búsqueda
+                            preview: !params.term // Indicar si es preview
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                // Configuración para mostrar resultados al abrir sin escribir
+                minimumResultsForSearch: 0,
+                // Personalizar el mensaje cuando no hay resultados
+                language: {
+                    noResults: function() {
+                        return "No se encontraron resultados";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    },
+                    inputTooShort: function() {
+                        return "Escribe para buscar más opciones";
+                    }
+                }
+            };
+
+            $select.select2(select2Config);
+
+            // Evento para cargar preview al abrir el dropdown
+            $select.on('select2:open', function() {
+                const select2 = $(this).data('select2');
+                if (select2.$dropdown) {
+                    // Si no hay opciones cargadas, ejecutar búsqueda vacía para mostrar preview
+                    if (select2.$results.find('.select2-results__option').length === 0) {
+                        select2.dataAdapter.query({
+                            term: ''
+                        }, function(data) {
+                            select2.dataAdapter.displayData(data);
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>
+@endpush

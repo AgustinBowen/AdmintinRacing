@@ -16,6 +16,8 @@
     'emptyMessage' => 'No hay resultados registrados',
     'showView'=> true,
     'showEdit' => true,
+    'filters' => $filters,
+    'filterOptions' => $filterOptions,
     'columns' => [
         ['label' => 'Sesión','field' => 'sesion.tipo',  'type' => 'badge'],
         ['label' => 'Piloto','field' => 'piloto.nombre',  'type' => 'text'],

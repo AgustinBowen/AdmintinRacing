@@ -31,6 +31,8 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
 
+            $table->unique(['sesion_id', 'piloto_id']);
+
             // Foreign keys
             $table->foreign('sesion_id')->references('id')->on('sesiones_definicion');
             $table->foreign('piloto_id')->references('id')->on('pilotos');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Circuito;
 use App\Models\SesionDefinicion;
 use App\Models\Fecha;
 use Illuminate\Http\Request;
@@ -25,6 +26,46 @@ class SesionDefinicionController extends Controller
         $searchFields = ['fecha.nombre']; // Campos en los que buscar
         $this->applySearch($query, $request, $searchFields);
 
+        // Definir filtros dinámicos
+        $filters = [
+            [
+                'key' => 'sesion_tipo',
+                'type' => 'select',
+                'field' => 'tipo',
+                'placeholder' => 'Todos los tipos',
+                'options' => SesionDefinicion::TIPOS
+            ],
+            [
+                'key' => 'fecha_sesion',
+                'type' => 'date',
+                'field' => 'fecha_sesion',
+                'placeholder' => 'Fecha de la sesión'
+            ],
+            [
+                'key' => 'fecha',
+                'type' => 'select',
+                'field' => 'fecha.nombre', // para filtrar por relación
+                'placeholder' => 'Todas las fechas',
+                'options' => function () {
+                    // Obtener las fechas que realmente tienen sesiones definidas
+                    return Fecha::whereHas('sesiones') // Asumiendo que tienes esta relación
+                        ->orderBy('nombre')
+                        ->pluck('nombre', 'nombre') // Usar nombre como key y value
+                        ->toArray();
+                }
+            ],
+            [
+                'key' => 'circuito',
+                'type' => 'select',
+                'field' => 'fecha.circuito_id', // para filtrar por relación
+                'placeholder' => 'Todos los circuitos',
+                'options' => Circuito::distinct('circuito')
+                    ->orderBy('circuito', 'desc')
+                    ->pluck('nombre', 'id')
+                    ->toArray()
+            ]
+        ];
+
         // Definir columnas de la tabla
         $columns = [
             ['label' => 'Tipo de Sesión', 'field' => 'tipo', 'type' => 'badge'],
@@ -36,7 +77,8 @@ class SesionDefinicionController extends Controller
         $config = [
             'orderBy' => 'fecha_sesion',
             'orderDirection' => 'asc',
-            'nameField' => 'nombre'
+            'nameField' => 'nombre',
+            'filters' => $filters,
         ];
 
         // Manejar respuesta
@@ -49,7 +91,8 @@ class SesionDefinicionController extends Controller
 
         // Si no es AJAX, devolver la vista completa
         $sesiones = $result;
-        return view('admin.sesiones.index', compact('sesiones'));
+        $filterOptions = $this->getFilterOptions($filters);
+        return view('admin.sesiones.index', compact('sesiones', 'filters', 'filterOptions'));
     }
 
     /**

@@ -38,6 +38,7 @@ class PilotoController extends Controller
         // Manejar respuesta
         $result = $this->handleIndexResponse($request, $query, $columns, 'admin.pilotos', $config);
 
+        
         // Si es AJAX, ya se devolvió la respuesta
         if ($request->ajax()) {
             return $result;

@@ -16,6 +16,8 @@
     'emptyMessage' => 'No hay horarios registrados',
     'showView'=> true,
     'showEdit' => true,
+    'filters' => $filters,
+    'filterOptions' => $filterOptions,
     'columns' => [
         ['label' => 'Fecha','field' => 'fecha.nombre',  'type' => 'text'],
         ['label' => 'Sesión','field' => 'sesion.tipo',  'type' => 'badge'],
