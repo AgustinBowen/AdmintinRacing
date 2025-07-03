@@ -20,16 +20,14 @@ trait HasSearchAndPagination
                 foreach ($searchFields as $field) {
                     if (str_contains($field, '.')) {
                         // Búsqueda en relaciones
-                        $relation = explode('.', $field);
-                        $relationName = $relation[0];
-                        $relationField = $relation[1];
+                        [$relationName, $relationField] = explode('.', $field);
 
                         $q->orWhereHas($relationName, function ($relationQuery) use ($relationField, $searchTerm) {
                             $relationQuery->whereRaw("unaccent(lower($relationField)) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
                         });
                     } else {
                         // Búsqueda en campos directos
-                        $q->orWhere($field, 'like', '%' . $searchTerm . '%');
+                        $q->orWhereRaw("unaccent(lower($field)) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
                     }
                 }
             });
@@ -37,6 +35,7 @@ trait HasSearchAndPagination
 
         return $query;
     }
+
 
     /**
      * Manejar respuesta de índice con búsqueda y paginación
