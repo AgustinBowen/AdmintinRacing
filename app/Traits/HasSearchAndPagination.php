@@ -15,17 +15,17 @@ trait HasSearchAndPagination
     {
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
-            
-            $query->where(function($q) use ($searchTerm, $searchFields) {
+
+            $query->where(function ($q) use ($searchTerm, $searchFields) {
                 foreach ($searchFields as $field) {
                     if (str_contains($field, '.')) {
                         // Búsqueda en relaciones
                         $relation = explode('.', $field);
                         $relationName = $relation[0];
                         $relationField = $relation[1];
-                        
-                        $q->orWhereHas($relationName, function($relationQuery) use ($relationField, $searchTerm) {
-                            $relationQuery->where($relationField, 'like', '%' . $searchTerm . '%');
+
+                        $q->orWhereHas($relationName, function ($relationQuery) use ($relationField, $searchTerm) {
+                            $relationQuery->whereRaw("unaccent(lower($relationField)) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
                         });
                     } else {
                         // Búsqueda en campos directos
@@ -34,17 +34,17 @@ trait HasSearchAndPagination
                 }
             });
         }
-        
+
         return $query;
     }
-    
+
     /**
      * Manejar respuesta de índice con búsqueda y paginación
      */
     protected function handleIndexResponse(
-        Request $request, 
-        Builder $query, 
-        array $columns, 
+        Request $request,
+        Builder $query,
+        array $columns,
         string $routePrefix,
         array $config = []
     ) {
@@ -60,16 +60,16 @@ trait HasSearchAndPagination
             'deleteModalId' => 'deleteModal',
             'nameField' => 'name'
         ], $config);
-        
+
         // Aplicar ordenamiento
         $query->orderBy($config['orderBy'], $config['orderDirection']);
-        
+
         // Obtener resultados paginados
         $items = $query->paginate($config['perPage']);
-        
+
         // Mantener parámetros de búsqueda en la paginación
         $items->appends($request->query());
-        
+
         // Si es una petición AJAX, devolver solo la tabla
         if ($request->ajax()) {
             return view('components.partials.partial-table', [
@@ -84,10 +84,10 @@ trait HasSearchAndPagination
                 'nameField' => $config['nameField']
             ])->render();
         }
-        
+
         return $items;
     }
-    
+
     /**
      * Configurar vista de paginación
      */
