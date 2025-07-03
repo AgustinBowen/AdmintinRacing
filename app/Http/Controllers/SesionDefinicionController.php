@@ -59,7 +59,7 @@ class SesionDefinicionController extends Controller
                 'type' => 'select',
                 'field' => 'fecha.circuito_id', // para filtrar por relación
                 'placeholder' => 'Todos los circuitos',
-                'options' => Circuito::distinct('circuito')
+                'options' => Circuito::distinct('nombre')
                     ->orderBy('circuito', 'desc')
                     ->pluck('nombre', 'id')
                     ->toArray()
