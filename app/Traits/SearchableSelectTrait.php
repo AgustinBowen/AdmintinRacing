@@ -39,10 +39,10 @@ trait SearchableSelectTrait
                         $relationField = $parts[1];
                         
                         $q->orWhereHas($relation, function (Builder $subQ) use ($relationField, $query) {
-                            $subQ->where($relationField, 'LIKE', "%{$query}%");
+                            $subQ->whereRaw("unaccent(lower($relationField)) ILIKE unaccent(lower(?))", ["%$query%"]);
                         });
                     } else {
-                        $q->orWhere($field, 'LIKE', "%{$query}%");
+                        $q->orWhereRaw("unaccent(lower($field)) ILIKE unaccent(lower(?))", ["%$query%"]);
                     }
                 }
             });
