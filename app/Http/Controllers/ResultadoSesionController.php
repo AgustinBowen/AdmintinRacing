@@ -79,9 +79,9 @@ class ResultadoSesionController extends Controller
 
         // Configuración específica
         $config = [
-            'orderBy' => 'sesion.tipo',
+            'orderBy' => 'posicion',
             'orderDirection' => 'asc',
-            'nameField' => 'sesion.tipo',
+            'nameField' => 'posicion',
             'filters' => $filters,
         ];
 
