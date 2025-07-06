@@ -18,23 +18,4 @@ class Piloto extends Model
                     ->withPivot('numero_auto');
     }
     
-    public function carrerasFinales()
-    {
-        return $this->hasMany(CarreraFinal::class);
-    }
-    
-    public function clasificaciones()
-    {
-        return $this->hasMany(Clasificacion::class);
-    }
-    
-    public function entrenamientos()
-    {
-        return $this->hasMany(Entrenamiento::class);
-    }
-    
-    public function seriesClasificatorias()
-    {
-        return $this->hasMany(SerieClasificatoria::class);
-    }
 }

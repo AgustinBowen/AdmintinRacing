@@ -137,7 +137,7 @@ class ResultadoSesionController extends Controller
         return $this->searchSelect(
             $request,
             Piloto::class,
-            ['nombre', 'apellido'], // Campos de búsqueda
+            ['nombre'], // Campos de búsqueda
             [], // Sin relaciones
             function ($query) {
                 return $query->orderBy('nombre', 'asc');
@@ -155,7 +155,7 @@ class ResultadoSesionController extends Controller
 
         // Para Piloto
         if ($item instanceof Piloto) {
-            return $item->nombre . ($item->apellido ? ' ' . $item->apellido : '');
+            return $item->nombre;
         }
 
         return (string) $item;
