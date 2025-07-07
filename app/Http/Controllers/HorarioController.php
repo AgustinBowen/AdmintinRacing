@@ -68,7 +68,7 @@ class HorarioController extends Controller
         ];
         // Configuración específica
         $config = [
-            'orderBy' => 'horario_id',
+            'orderBy' => 'horarios.horario',
             'orderDirection' => 'asc',
             'nameField' => 'id',
             'filters' => $filters,
