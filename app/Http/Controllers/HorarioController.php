@@ -61,7 +61,7 @@ class HorarioController extends Controller
                 'field' => 'fecha.nombre', // para filtrar por relación
                 'placeholder' => 'Todos los tipos',
                 'options' => Fecha::distinct('fecha')
-                    ->orderBy('fecha', 'desc')
+                    ->orderBy('nombre', 'desc')
                     ->pluck('nombre', 'id')
                     ->toArray()
             ],
