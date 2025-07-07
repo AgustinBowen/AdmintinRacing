@@ -53,21 +53,21 @@
             [
                 'label' => 'Tiempo Total',
                 'type' => 'text',
-                'value' => $resultado->tiempo_total ?? '—',
+                'value' => $resultado->tiempo_total_formateado ?? '—',
                 'width' => 4,
                 'icon' => 'fas fa-clock'
             ],
             [
                 'label' => 'Mejor Tiempo',
                 'type' => 'text',
-                'value' => $resultado->mejor_tiempo ?? '—',
+                'value' => $resultado->mejor_tiempo_formateado ?? '—',
                 'width' => 4,
                 'icon' => 'fas fa-stopwatch'
             ],
             [
                 'label' => 'Diferencia con el Primero',
                 'type' => 'text',
-                'value' => $resultado->diferencia_primero ?? '—',
+                'value' => $resultado->diferencia_primero_formateada ?? '—',
                 'width' => 4,
                 'icon' => 'fas fa-chart-line'
             ],
@@ -81,21 +81,21 @@
             [
                 'label' => 'Mejor Sector 1',
                 'type' => 'text',
-                'value' => $resultado->sector_1 ?? '—',
+                'value' => $resultado->sector_1_formateado ?? '—',
                 'width' => 4,
                 'icon' => 'fas fa-tachometer-alt'
             ],
             [
                 'label' => 'Mejor Sector 2',
                 'type' => 'text',
-                'value' => $resultado->sector_2 ?? '—',
+                'value' => $resultado->sector_2_formateado ?? '—',
                 'width' => 4,
                 'icon' => 'fas fa-tachometer-alt'
             ],
             [
                 'label' => 'Mejor Sector 3',
                 'type' => 'text',
-                'value' => $resultado->sector_3 ?? '—',
+                'value' => $resultado->sector_3_formateado ?? '—',
                 'width' => 12,
                 'icon' => 'fas fa-tachometer-alt'
             ],
