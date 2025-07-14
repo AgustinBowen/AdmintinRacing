@@ -1,8 +1,8 @@
 <div class="card-modern">
-    <div class="card-header-modern d-flex justify-content-between align-items-center">
+    <div class="card-header-modern d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <h5 class="mb-0 fw-semibold">{{ $title }}</h5>
         @if(isset($headerActions))
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
                 @foreach($headerActions as $action)
                     <a href="{{ $action['route'] }}" 
                        class="btn-modern {{ $action['class'] ?? 'btn-secondary-modern' }}"
@@ -10,7 +10,8 @@
                         @if(isset($action['icon']))
                             <i class="{{ $action['icon'] }} me-1"></i>
                         @endif
-                        {{ $action['label'] }}
+                        <span class="d-none d-sm-inline">{{ $action['label'] }}</span>
+                        <span class="d-sm-none">{{ $action['shortLabel'] ?? $action['label'] }}</span>
                     </a>
                 @endforeach
             </div>
@@ -18,14 +19,13 @@
     </div>
 
     <div class="card-body-modern">
-        <div class="row">
+        <div class="row g-3 g-md-4">
             @foreach($fields as $field)
-                <div class="col-md-{{ $field['width'] ?? 12 }}">
-                    <div class="mb-4">
-                        <label class="form-label fw-medium mb-2" 
-                               style="color: hsl(var(--muted-foreground)); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                <div class="col-12 col-sm-6 col-md-{{ $field['width'] ?? 12 }} col-lg-{{ $field['width'] ?? 12 }}">
+                    <div class="show-field-wrapper">
+                        <label class="show-field-label">
                             @if(isset($field['icon']))
-                                <i class="{{ $field['icon'] }} me-1"></i>
+                                <i class="{{ $field['icon'] }} me-2 field-icon"></i>
                             @endif
                             {{ $field['label'] }}
                         </label>
@@ -51,7 +51,7 @@
                                             {{ $date->format($field['format'] ?? 'd/m/Y') }}
                                         </span>
                                         @if($field['showRelative'] ?? false)
-                                            <small class="text-muted ms-2">
+                                            <small class="text-muted d-block d-sm-inline ms-sm-2">
                                                 ({{ $date->diffForHumans() }})
                                             </small>
                                         @endif
@@ -110,14 +110,12 @@
                                     @if($field['value'])
                                         <img src="{{ $field['value'] }}" 
                                              alt="{{ $field['alt'] ?? $field['label'] }}"
-                                             class="show-image"
+                                             class="show-image img-fluid"
                                              style="max-width: {{ $field['maxWidth'] ?? '200px' }}; height: auto; border-radius: var(--radius); border: 1px solid hsl(var(--border));">
                                     @else
                                         <div class="show-image-placeholder">
-                                            <i class="fas fa-image" style="font-size: 2rem; color: hsl(var(--muted-foreground)); opacity: 0.5;"></i>
-                                            <p style="color: hsl(var(--muted-foreground)); font-size: 0.875rem; margin: 0.5rem 0 0;">
-                                                Sin imagen
-                                            </p>
+                                            <i class="fas fa-image"></i>
+                                            <p>Sin imagen</p>
                                         </div>
                                     @endif
                                 </div>
@@ -132,9 +130,9 @@
                                             @if(isset($field['icon']))
                                                 <i class="{{ $field['icon'] }} me-1"></i>
                                             @endif
-                                            {{ $field['linkText'] ?? $field['value'] }}
+                                            <span class="link-text">{{ $field['linkText'] ?? $field['value'] }}</span>
                                             @if(($field['target'] ?? '_blank') === '_blank')
-                                                <i class="fas fa-external-link-alt ms-1" style="font-size: 0.75rem;"></i>
+                                                <i class="fas fa-external-link-alt ms-1 external-icon"></i>
                                             @endif
                                         </a>
                                     @else
@@ -165,8 +163,7 @@
                         </div>
                         
                         @if(isset($field['help']))
-                            <small class="form-text mt-1 d-block" 
-                                   style="color: hsl(var(--muted-foreground)); font-size: 0.75rem;">
+                            <small class="show-field-help">
                                 {{ $field['help'] }}
                             </small>
                         @endif
@@ -176,7 +173,7 @@
         </div>
 
         @if(isset($actions) && count($actions) > 0)
-            <div class="d-flex gap-3 pt-4 mt-2" style="border-top: 1px solid hsl(var(--border));">
+            <div class="show-actions">
                 @foreach($actions as $action)
                     @if($action['type'] === 'link')
                         <a href="{{ $action['route'] }}" 
@@ -184,7 +181,8 @@
                             @if(isset($action['icon']))
                                 <i class="{{ $action['icon'] }} me-2"></i>
                             @endif
-                            {{ $action['label'] }}
+                            <span class="d-none d-sm-inline">{{ $action['label'] }}</span>
+                            <span class="d-sm-none">{{ $action['shortLabel'] ?? $action['label'] }}</span>
                         </a>
                     @elseif($action['type'] === 'button')
                         <button type="button" 
@@ -198,7 +196,8 @@
                             @if(isset($action['icon']))
                                 <i class="{{ $action['icon'] }} me-2"></i>
                             @endif
-                            {{ $action['label'] }}
+                            <span class="d-none d-sm-inline">{{ $action['label'] }}</span>
+                            <span class="d-sm-none">{{ $action['shortLabel'] ?? $action['label'] }}</span>
                         </button>
                     @endif
                 @endforeach
@@ -208,89 +207,264 @@
 </div>
 
 <style>
-    /* Show Component Styles */
+/* Show Component Responsive Styles */
+.show-field-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.show-field-label {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.field-icon {
+    color: hsl(var(--accent));
+    font-size: 0.875rem;
+}
+
+.show-field-value {
+    background-color: hsl(var(--muted) / 0.3);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: hsl(var(--foreground));
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    word-break: break-word;
+}
+
+.show-text-field,
+.show-date-field,
+.show-time-field,
+.show-default-field {
+    font-weight: 500;
+}
+
+.show-textarea-field {
+    line-height: 1.6;
+    white-space: pre-wrap;
+    align-items: flex-start;
+    min-height: auto;
+    padding: 0.75rem;
+}
+
+.show-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: hsl(var(--muted) / 0.5);
+    border: 2px dashed hsl(var(--border));
+    border-radius: var(--radius);
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+}
+
+.show-image-placeholder i {
+    font-size: 2rem;
+    opacity: 0.5;
+    margin-bottom: 0.5rem;
+}
+
+.show-image-placeholder p {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.show-link {
+    color: hsl(var(--accent));
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.show-link:hover {
+    color: hsl(var(--accent) / 0.8);
+    text-decoration: underline;
+}
+
+.link-text {
+    word-break: break-all;
+}
+
+.external-icon {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.show-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style-type: disc;
+}
+
+.show-list li {
+    margin-bottom: 0.25rem;
+    color: hsl(var(--foreground));
+}
+
+.date-value {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+}
+
+.text-muted {
+    color: hsl(var(--muted-foreground)) !important;
+    font-size: 0.75rem;
+}
+
+.show-field-help {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+    line-height: 1.4;
+}
+
+.show-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+    border-top: 1px solid hsl(var(--border));
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .show-field-wrapper {
+        margin-bottom: 1.25rem;
+    }
+    
     .show-field-value {
-        background-color: hsl(var(--muted) / 0.3);
-        border: 1px solid hsl(var(--border));
-        border-radius: var(--radius);
-        padding: 0.75rem;
-        min-height: 2.5rem;
-        display: flex;
-        align-items: center;
-        font-size: 0.875rem;
-        color: hsl(var(--foreground));
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0.625rem;
+        font-size: 0.8rem;
+        min-height: 2rem;
     }
-
-    .show-text-field,
-    .show-date-field,
-    .show-time-field,
-    .show-default-field {
-        font-weight: 500;
-    }
-
-    .show-textarea-field {
-        line-height: 1.6;
-        white-space: pre-wrap;
-        align-items: flex-start;
-        min-height: auto;
-        padding: 0.75rem;
-    }
-
-    .show-image-placeholder {
-        display: flex;
+    
+    .show-actions {
         flex-direction: column;
-        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .show-actions .btn-modern {
+        width: 100%;
         justify-content: center;
-        padding: 2rem;
-        background-color: hsl(var(--muted) / 0.5);
-        border: 2px dashed hsl(var(--border));
-        border-radius: var(--radius);
-        text-align: center;
     }
-
+    
+    .show-image {
+        max-width: 100% !important;
+    }
+    
+    .show-image-placeholder {
+        padding: 1.5rem;
+    }
+    
+    .show-image-placeholder i {
+        font-size: 1.5rem;
+    }
+    
     .show-link {
-        color: hsl(var(--accent));
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
     }
-
-    .show-link:hover {
-        color: hsl(var(--accent) / 0.8);
-        text-decoration: underline;
+    
+    .external-icon {
+        align-self: flex-start;
     }
+}
 
-    .show-list {
-        margin: 0;
-        padding-left: 1.25rem;
-        list-style-type: disc;
+@media (max-width: 576px) {
+    .card-body-modern {
+        padding: 1rem;
     }
-
-    .show-list li {
-        margin-bottom: 0.25rem;
-        color: hsl(var(--foreground));
+    
+    .show-field-wrapper {
+        margin-bottom: 1rem;
     }
-
-    .date-value {
-        font-weight: 500;
-        color: hsl(var(--foreground));
+    
+    .show-field-label {
+        font-size: 0.7rem;
+        margin-bottom: 0.375rem;
     }
-
-    .text-muted {
-        color: hsl(var(--muted-foreground)) !important;
+    
+    .show-field-value {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+        min-height: 1.75rem;
+    }
+    
+    .show-actions {
+        padding-top: 1rem;
+    }
+    
+    .btn-modern {
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .field-icon {
         font-size: 0.75rem;
     }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .show-field-value {
-            padding: 0.5rem;
-            font-size: 0.8rem;
-        }
-        
-        .show-image {
-            max-width: 100% !important;
-        }
+    
+    .badge-modern {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
     }
+}
+
+/* Bootstrap grid responsive adjustments */
+.row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+
+.row.g-md-4 {
+    --bs-gutter-y: 1.5rem;
+}
+
+@media (max-width: 576px) {
+    .row.g-3 {
+        --bs-gutter-x: 0.75rem;
+        --bs-gutter-y: 0.75rem;
+    }
+    
+    .row.g-md-4 {
+        --bs-gutter-y: 0.75rem;
+    }
+}
+
+/* Ensure proper column behavior on small screens */
+@media (max-width: 576px) {
+    .col-sm-6[class*="col-md-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Card header responsive */
+@media (max-width: 768px) {
+    .card-header-modern {
+        padding: 1rem;
+    }
+    
+    .card-header-modern .btn-modern {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
 </style>

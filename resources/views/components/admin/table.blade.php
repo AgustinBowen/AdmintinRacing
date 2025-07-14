@@ -3,7 +3,7 @@
         <h5 class="mb-0 fw-semibold">{{ $title }}</h5>
         <div class="d-flex align-items-center gap-2">
             <div class="px-4 py-3">
-                <input type="text" id="searchInput" class="form-control form-control-modern"
+                <input type="text" id="searchInput" class="input-modern"
                     placeholder="Buscar..." autocomplete="off"
                     value="{{ request('search') }}">
             </div>
@@ -17,7 +17,7 @@
 
     {{-- Incluir filtros si están configurados --}}
     @if(isset($filters) && count($filters) > 0)
-    <div class="card-body-modern border-bottom">
+    <div class="card-body-modern" style="border-bottom: 1px solid hsl(var(--border));">
         @include('components.partials.filters', [
         'filters' => $filters,
         'filterOptions' => $filterOptions ?? []
