@@ -34,16 +34,27 @@ class SesionDefinicion extends Model
         'entrenamiento_1' => 'Entrenamiento 1',
         'entrenamiento_2' => 'Entrenamiento 2',
         'entrenamiento_3' => 'Entrenamiento 3',
+        'entrenamiento_4' => 'Entrenamiento 4',
         'clasificacion' => 'Clasificación',
+        'acumulados' => 'Acumulados',
         'serie_clasificatoria_1' => 'Serie Clasificatoria 1',
         'serie_clasificatoria_2' => 'Serie Clasificatoria 2',
         'serie_clasificatoria_3' => 'Serie Clasificatoria 3',
-        'carrera_final' => 'Carrera Final'
+        'carrera_final' => 'Carrera Final',
     ];
 
-    /**
-     * Relación con Fecha
-     */
+    const ORDEN = [
+        'entrenamiento_1' => 1,
+        'entrenamiento_2' => 2,
+        'entrenamiento_3' => 3,
+        'entrenamiento_4' => 4,
+        'acumulados'      => 5,
+        'clasificacion'   => 6,
+        'serie_clasificatoria_1' => 7,
+        'serie_clasificatoria_2' => 8,
+        'serie_clasificatoria_3' => 9,
+        'carrera_final'   => 10,
+    ];
     public function fecha(): BelongsTo
     {
         return $this->belongsTo(Fecha::class, 'fecha_id');
@@ -87,5 +98,21 @@ class SesionDefinicion extends Model
     public function getTipoNombreAttribute()
     {
         return self::TIPOS[$this->tipo] ?? $this->tipo;
+    }
+
+    /**
+     * Boot function para manejar cascada manual si no está en DB
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($sesion) {
+            // Eliminar resultados relacionados
+            $sesion->resultados()->delete();
+            
+            // Eliminar horarios relacionados
+            $sesion->horarios()->delete();
+        });
     }
 }

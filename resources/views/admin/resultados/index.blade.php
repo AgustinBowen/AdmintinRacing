@@ -13,6 +13,14 @@
     'routePrefix' => 'admin.resultados',
     'createRoute' => route('admin.resultados.create'),
     'createText' => 'Nuevo Resultado',
+    'extraButtons' => [
+        [
+            'url' => route('admin.resultados.import.form'),
+            'text' => 'Importar Archivo',
+            'icon' => 'fas fa-file-image',
+            'class' => 'btn-secondary-modern'
+        ]
+    ],
     'emptyMessage' => 'No hay resultados registrados',
     'showView'=> true,
     'showEdit' => true,

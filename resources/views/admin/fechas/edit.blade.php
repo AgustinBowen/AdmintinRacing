@@ -57,7 +57,7 @@
                     'label' => 'Campeonato',
                     'type' => 'select',
                     'options' => $campeonatos,
-                    'optionLabel' => 'campeonato',
+                    'optionLabel' => 'nombre',
                     'optionValue' => 'id',
                     'required' => true,
                     'width' => 8,

@@ -27,4 +27,9 @@ class Campeonato extends Model
     {
         return $this->hasMany(PosicionCampeonato::class);
     }
+
+    public function sistemaPuntaje()
+    {
+        return $this->hasMany(SistemaPuntaje::class);
+    }
 }

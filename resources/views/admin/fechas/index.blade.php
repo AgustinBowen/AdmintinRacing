@@ -17,6 +17,14 @@
     'showView'=> false,
     'showEdit' => true,
     'showView' => true,
+    'rowActions' => [
+        [
+            'route' => 'admin.fechas.resultados',
+            'title' => 'Ver Resultados',
+            'icon'  => 'fas fa-list-ol',
+            'class' => 'btn-modern btn-primary-modern'
+        ]
+    ],
     'columns' => [
         ['field' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
         ['field' => 'fecha_desde', 'label' => 'Fecha Desde', 'type' => 'date'],

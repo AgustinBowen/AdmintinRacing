@@ -407,28 +407,56 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.text();
         })
         .then(html => {
-            // Actualizar contenido de la tabla
+            const contentArea = document.querySelector('.card-modern .p-0');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
-            const newTableContainer = tempDiv.querySelector('#table-container');
-            const newEmptyState = tempDiv.querySelector('#empty-state');
-            const currentTableContainer = document.getElementById('table-container');
-            
-            if (newTableContainer && currentTableContainer) {
-                currentTableContainer.innerHTML = newTableContainer.innerHTML;
-                currentTableContainer.style.display = 'block';
-                document.getElementById('empty-state')?.remove();
-            } else if (newEmptyState) {
-                if (currentTableContainer) {
-                    currentTableContainer.style.display = 'none';
-                }
-                // Insertar estado vacío
-                const emptyStateContainer = document.querySelector('.card-modern .p-0') || document.body;
-                const existingEmptyState = document.getElementById('empty-state');
-                if (existingEmptyState) {
-                    existingEmptyState.remove();
-                }
-                emptyStateContainer.appendChild(newEmptyState);
+
+            // Detect which state the response contains
+            const hasRequireFilter = tempDiv.querySelector('#require-filter-state') || html.includes('id="require-filter-state"');
+            const hasEmptyState = tempDiv.querySelector('#empty-state');
+            const hasTableData = html.includes('<table') || html.includes('<tr');
+
+            // Clear all existing states
+            const currentTable = document.getElementById('table-container');
+            const currentEmpty = document.getElementById('empty-state');
+            const currentRequire = document.getElementById('require-filter-state');
+
+            if (currentTable) currentTable.remove();
+            if (currentEmpty) currentEmpty.remove();
+            if (currentRequire) currentRequire.remove();
+
+            if (hasRequireFilter) {
+                // Show "select a filter" state
+                const requireDiv = tempDiv.querySelector('#require-filter-state') || tempDiv;
+                contentArea.innerHTML = '';
+                contentArea.appendChild(requireDiv.querySelector('#require-filter-state') || (() => {
+                    const d = document.createElement('div');
+                    d.innerHTML = html;
+                    return d.firstElementChild || d;
+                })());
+            } else if (hasTableData && !hasEmptyState) {
+                // Show table with data
+                const tableDiv = document.createElement('div');
+                tableDiv.id = 'table-container';
+                tableDiv.innerHTML = html;
+                contentArea.innerHTML = '';
+                contentArea.appendChild(tableDiv);
+            } else {
+                // Show empty state (no results for this filter)
+                contentArea.innerHTML = '';
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'text-center py-5';
+                emptyDiv.id = 'empty-state';
+                emptyDiv.innerHTML = `
+                    <div class="mb-3">
+                        <i class="fas fa-inbox" style="font-size: 3rem; color: hsl(var(--muted-foreground)); opacity: 0.5;"></i>
+                    </div>
+                    <h6 class="mb-2" style="color: hsl(var(--foreground));">No se encontraron resultados</h6>
+                    <p class="mb-0" style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
+                        No hay pilotos para este campeonato
+                    </p>
+                `;
+                contentArea.appendChild(emptyDiv);
             }
             
             // Actualizar URL del navegador

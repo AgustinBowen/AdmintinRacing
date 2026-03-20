@@ -29,11 +29,25 @@
             ],
         ],
         'actions' => [
-             [
+            [
+                'type' => 'link',
+                'label' => 'Ver Clasificación',
+                'route' => route('admin.campeonatos.standings', $campeonato),
+                'class' => 'btn-primary-modern',
+                'icon' => 'fas fa-trophy'
+            ],
+            [
+                'type' => 'link',
+                'label' => 'Sistema de Puntaje',
+                'route' => route('admin.campeonatos.scoring', $campeonato),
+                'class' => 'btn-secondary-modern',
+                'icon' => 'fas fa-sliders'
+            ],
+            [
                 'type' => 'link',
                 'label' => 'Editar',
                 'route' => route('admin.campeonatos.edit', $campeonato),
-                'class' => 'btn-primary-modern',
+                'class' => 'btn-secondary-modern',
                 'icon' => 'fas fa-edit'
             ],
             [

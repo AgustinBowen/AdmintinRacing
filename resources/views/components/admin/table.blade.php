@@ -7,10 +7,18 @@
                     placeholder="Buscar..." autocomplete="off"
                     value="{{ request('search') }}">
             </div>
-            @if(isset($createRoute) && $items->count() >= 1)
+            @if(isset($createRoute))
             <a href="{{ $createRoute }}" class="btn-modern btn-primary-modern">
                 <i class="fas fa-plus me-1"></i> {{ $createText ?? 'Crear' }}
             </a>
+            @endif
+            @if(isset($extraButtons))
+                @foreach($extraButtons as $btn)
+                <a href="{{ $btn['url'] }}" class="btn-modern {{ $btn['class'] ?? 'btn-secondary-modern' }}">
+                    @if(isset($btn['icon'])) <i class="{{ $btn['icon'] }} me-1"></i> @endif
+                    {{ $btn['text'] }}
+                </a>
+                @endforeach
             @endif
         </div>
     </div>
@@ -26,7 +34,20 @@
     @endif
 
     <div class="p-0">
-        @if($items->count() > 0)
+        @if(isset($requireFilter) && $requireFilter)
+        {{-- Estado: requiere seleccionar filtro primero --}}
+        <div class="text-center py-5" id="require-filter-state">
+            <div class="mb-3">
+                <i class="{{ $requireFilterIcon ?? 'fas fa-filter' }}" style="font-size: 3rem; color: hsl(var(--muted-foreground)); opacity: 0.5;"></i>
+            </div>
+            <h6 class="mb-2" style="color: hsl(var(--foreground));">
+                Seleccioná un campeonato
+            </h6>
+            <p class="mb-0" style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
+                {{ $requireFilterMessage ?? 'Seleccioná un filtro para ver los resultados' }}
+            </p>
+        </div>
+        @elseif($items->count() > 0)
         <div id="table-container">
             @include('components.partials.partial-table', [
             'columns' => $columns,
@@ -37,7 +58,8 @@
             'showEdit' => $showEdit ?? true,
             'showDelete' => $showDelete ?? true,
             'deleteModalId' => $deleteModalId ?? 'deleteModal',
-            'nameField' => $nameField ?? 'name'
+            'nameField' => $nameField ?? 'name',
+            'rowActions' => $rowActions ?? null
             ])
         </div>
         @else
@@ -52,14 +74,9 @@
             </h6>
             <p class="mb-3" style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
                 {{ request('search') || collect($filters ?? [])->some(function($filter) { return !empty(request($filter['key'])); })
-                    ? 'Intenta con otros términos de búsqueda o filtros' 
+                    ? ($emptyMessage ?? 'Intenta con otros términos de búsqueda o filtros')
                     : ($emptyMessage ?? 'No hay elementos para mostrar') }}
             </p>
-            @if(isset($createRoute) && !request('search') && !collect($filters ?? [])->some(function($filter) { return !empty(request($filter['key'])); }))
-            <a href="{{ $createRoute }}" class="btn-modern btn-primary-modern">
-                <i class="fas fa-plus me-1"></i> {{ $createText ?? 'Crear el primero' }}
-            </a>
-            @endif
         </div>
         @endif
     </div>
@@ -135,27 +152,44 @@
                 })
                 .then(response => response.text())
                 .then(html => {
-                    // Actualizar el contenido de la tabla
+                    const contentArea = document.querySelector('.card-modern .p-0');
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = html;
-                    const newTableContainer = tempDiv;
-                    const newEmptyState = tempDiv.querySelector('#empty-state');
 
-                    if (newTableContainer && tableContainer) {
-                        tableContainer.innerHTML = newTableContainer.innerHTML;
-                        tableContainer.style.display = 'block';
-                        document.getElementById('empty-state')?.remove();
-                    } else if (newEmptyState) {
-                        if (tableContainer) {
-                            tableContainer.style.display = 'none';
-                        }
-                        // Insertar estado vacío
-                        const emptyStateContainer = document.querySelector('.card-modern .p-0');
-                        const existingEmptyState = document.getElementById('empty-state');
-                        if (existingEmptyState) {
-                            existingEmptyState.remove();
-                        }
-                        emptyStateContainer.appendChild(newEmptyState);
+                    const hasRequireFilter = html.includes('id="require-filter-state"');
+                    const hasTableData = html.includes('<table') || html.includes('<tr');
+
+                    // Clear all existing states
+                    const currentTable = document.getElementById('table-container');
+                    const currentEmpty = document.getElementById('empty-state');
+                    const currentRequire = document.getElementById('require-filter-state');
+                    if (currentTable) currentTable.remove();
+                    if (currentEmpty) currentEmpty.remove();
+                    if (currentRequire) currentRequire.remove();
+
+                    if (hasRequireFilter) {
+                        contentArea.innerHTML = html;
+                    } else if (hasTableData) {
+                        const tableDiv = document.createElement('div');
+                        tableDiv.id = 'table-container';
+                        tableDiv.innerHTML = html;
+                        contentArea.innerHTML = '';
+                        contentArea.appendChild(tableDiv);
+                    } else {
+                        contentArea.innerHTML = '';
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'text-center py-5';
+                        emptyDiv.id = 'empty-state';
+                        emptyDiv.innerHTML = `
+                            <div class="mb-3">
+                                <i class="fas fa-inbox" style="font-size: 3rem; color: hsl(var(--muted-foreground)); opacity: 0.5;"></i>
+                            </div>
+                            <h6 class="mb-2" style="color: hsl(var(--foreground));">No se encontraron resultados</h6>
+                            <p class="mb-0" style="color: hsl(var(--muted-foreground)); font-size: 0.875rem;">
+                                No hay pilotos para este campeonato
+                            </p>
+                        `;
+                        contentArea.appendChild(emptyDiv);
                     }
 
                     // Actualizar URL del navegador sin recargar
@@ -166,9 +200,10 @@
                 })
                 .finally(() => {
                     // Remover indicador de carga
-                    if (tableContainer) {
-                        tableContainer.style.opacity = '1';
-                        tableContainer.style.pointerEvents = 'auto';
+                    const tc = document.getElementById('table-container');
+                    if (tc) {
+                        tc.style.opacity = '1';
+                        tc.style.pointerEvents = 'auto';
                     }
                 });
         }
@@ -196,9 +231,10 @@
                 });
 
                 // Mostrar indicador de carga
-                if (tableContainer) {
-                    tableContainer.style.opacity = '0.6';
-                    tableContainer.style.pointerEvents = 'none';
+                const currentTableContainer = document.getElementById('table-container');
+                if (currentTableContainer) {
+                    currentTableContainer.style.opacity = '0.6';
+                    currentTableContainer.style.pointerEvents = 'none';
                 }
 
                 fetch(url.href, {
@@ -210,11 +246,13 @@
                     })
                     .then(response => response.text())
                     .then(html => {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.id = 'table-container';
-                        tempDiv.innerHTML = html;
-                        const newTableContainer = tempDiv;
-                        tableContainer.innerHTML = newTableContainer.innerHTML;
+                        const tc = document.getElementById('table-container');
+                        if (tc) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.id = 'table-container';
+                            tempDiv.innerHTML = html;
+                            tc.innerHTML = tempDiv.innerHTML;
+                        }
                         // Actualizar URL del navegador
                         history.pushState({}, '', url.href);
                     })
@@ -223,9 +261,10 @@
                     })
                     .finally(() => {
                         // Remover indicador de carga
-                        if (tableContainer) {
-                            tableContainer.style.opacity = '1';
-                            tableContainer.style.pointerEvents = 'auto';
+                        const tc = document.getElementById('table-container');
+                        if (tc) {
+                            tc.style.opacity = '1';
+                            tc.style.pointerEvents = 'auto';
                         }
                     });
             }

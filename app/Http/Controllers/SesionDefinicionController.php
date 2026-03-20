@@ -8,6 +8,7 @@ use App\Models\Fecha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 use App\Traits\HasSearchAndPagination;
 
 class SesionDefinicionController extends Controller
@@ -100,9 +101,11 @@ class SesionDefinicionController extends Controller
      */
     public function create()
     {
-        $fechas = Fecha::all();
-        $fechas = Fecha::pluck('nombre', 'id');
-        $tipos = SesionDefinicion::TIPOS;
+        $fechas = Fecha::orderBy('nombre')->get();
+        $tipos = [];
+        foreach (SesionDefinicion::TIPOS as $value => $label) {
+            $tipos[] = ['value' => $value, 'label' => $label];
+        }
 
         return view('admin.sesiones.create', compact('fechas', 'tipos'));
     }
@@ -115,7 +118,15 @@ class SesionDefinicionController extends Controller
         $validated = $request->validate([
             'fecha_id' => 'required|exists:fechas,id',
             'fecha_sesion' => 'required|date',
-            'tipo' => 'required|in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
+            'tipo' => [
+                'required',
+                'in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
+                Rule::unique('sesiones_definicion')->where(function ($query) use ($request) {
+                    return $query->where('fecha_id', $request->fecha_id);
+                }),
+            ],
+        ], [
+            'tipo.unique' => 'Ya existe una sesión de este tipo para la fecha seleccionada.'
         ]);
 
         SesionDefinicion::create($validated);
@@ -138,9 +149,11 @@ class SesionDefinicionController extends Controller
      */
     public function edit(SesionDefinicion $sesion)
     {
-        $fechas = Fecha::all();
-        $fechas = Fecha::pluck('nombre', 'id');
-        $tipos = SesionDefinicion::TIPOS;
+        $fechas = Fecha::orderBy('nombre')->get();
+        $tipos = [];
+        foreach (SesionDefinicion::TIPOS as $value => $label) {
+            $tipos[] = ['value' => $value, 'label' => $label];
+        }
 
         return view('admin.sesiones.edit', compact('sesion', 'fechas', 'tipos'));
     }
@@ -153,7 +166,15 @@ class SesionDefinicionController extends Controller
         $validated = $request->validate([
             'fecha_id' => 'required|exists:fechas,id',
             'fecha_sesion' => 'required|date',
-            'tipo' => 'required|in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
+            'tipo' => [
+                'required',
+                'in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
+                Rule::unique('sesiones_definicion')->where(function ($query) use ($request) {
+                    return $query->where('fecha_id', $request->fecha_id);
+                })->ignore($sesion->id),
+            ],
+        ], [
+            'tipo.unique' => 'Ya existe una sesión de este tipo para la fecha seleccionada.'
         ]);
 
         $sesion->update($validated);
@@ -169,6 +190,6 @@ class SesionDefinicionController extends Controller
     {
         $sesion->delete();
         Session::flash('success', 'Sesión eliminada exitosamente.');
-        return Redirect::route('admin.sesiones.index');
+        return redirect()->back();
     }
 }

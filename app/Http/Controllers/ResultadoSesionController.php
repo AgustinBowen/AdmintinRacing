@@ -33,39 +33,25 @@ class ResultadoSesionController extends Controller
         // Definir filtros dinámicos
         $filters = [
             [
+                'key' => 'fecha_id',
+                'type' => 'select',
+                'field' => 'sesion.fecha_id',
+                'placeholder' => 'Todas las Fechas',
+                'options' => \App\Models\Fecha::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+            ],
+            [
+                'key' => 'piloto_id',
+                'type' => 'select',
+                'field' => 'piloto_id',
+                'placeholder' => 'Todos los Pilotos',
+                'options' => \App\Models\Piloto::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+            ],
+            [
                 'key' => 'sesion_tipo',
                 'type' => 'select',
                 'field' => 'sesion.tipo',
-                'placeholder' => 'Todos los tipos',
-                'options' => SesionDefinicion::TIPOS
-            ],
-            [
-                'key' => 'posicion_range',
-                'type' => 'select',
-                'field' => 'posicion',
-                'placeholder' => 'Todas las posiciones',
-                'options' => [
-                    '1-3' => 'Podio (1-3)',
-                    '4-10' => 'Top 10 (4-10)',
-                    '11-20' => 'Puntos (11-20)',
-                    '21+' => 'Fuera de puntos (21+)'
-                ],
-                'callback' => function ($query, $value) {
-                    switch ($value) {
-                        case '1-3':
-                            $query->whereBetween('posicion', [1, 3]);
-                            break;
-                        case '4-10':
-                            $query->whereBetween('posicion', [4, 10]);
-                            break;
-                        case '11-20':
-                            $query->whereBetween('posicion', [11, 20]);
-                            break;
-                        case '21+':
-                            $query->where('posicion', '>', 20);
-                            break;
-                    }
-                }
+                'placeholder' => 'Todos los tipos de Sesión',
+                'options' => \App\Models\SesionDefinicion::TIPOS
             ],
         ];
 
@@ -97,6 +83,129 @@ class ResultadoSesionController extends Controller
         $resultados = $result;
         $filterOptions = $this->getFilterOptions($filters);
         return view('admin.resultados.index', compact('resultados', 'filters', 'filterOptions'));
+    }
+
+    // ==========================================
+    // IMPORTACIÓN POR OCR/PDF
+    // ==========================================
+
+    public function importForm()
+    {
+        $sesiones = SesionDefinicion::with('fecha')
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return view('admin.resultados.import', compact('sesiones'));
+    }
+
+    public function importPreview(Request $request)
+    {
+        $sesion_id = $request->input('sesion_id');
+        $resultados_json = json_decode($request->input('resultados_json'), true) ?? [];
+
+        $sesion = SesionDefinicion::with('fecha.campeonato')->findOrFail($sesion_id);
+        
+        // Obtener todos los pilotos para el dropdown
+        $pilotos = Piloto::orderBy('nombre')->get();
+        $campeonatos = \App\Models\Campeonato::orderBy('anio', 'desc')->get();
+        
+        // Intentar autocompletar el piloto usando el nombre extraído (muy básico)
+        $nombresPilotos = $pilotos->pluck('id', 'nombre')->mapWithKeys(function ($item, $key) {
+            return [strtolower(trim($key)) => $item];
+        })->toArray();
+
+        foreach ($resultados_json as &$row) {
+            $nombreScan = strtolower(trim($row['nombre'] ?? ''));
+            if (empty($nombreScan)) {
+                $row['piloto_id_match'] = null;
+                continue;
+            }
+
+            // 1. Búsqueda exacta
+            if (isset($nombresPilotos[$nombreScan])) {
+                $row['piloto_id_match'] = $nombresPilotos[$nombreScan];
+            } else {
+                // 2. Búsqueda estricta por partes (Strict Intersection)
+                // El nombre escaneado "Franco Smith" NO debe coincidir con "Franco Rossi"
+                $row['piloto_id_match'] = null;
+                $parts = array_filter(explode(' ', $nombreScan), fn($p) => strlen($p) > 2);
+                
+                if (count($parts) > 0) {
+                    foreach ($nombresPilotos as $dbName => $id) {
+                        $allPartsExist = true;
+                        foreach ($parts as $p) {
+                            if (!str_contains($dbName, $p)) {
+                                $allPartsExist = false;
+                                break;
+                            }
+                        }
+
+                        if ($allPartsExist) {
+                            // Si encontramos una coincidencia donde TODAS las partes existen en el nombre de la DB
+                            $row['piloto_id_match'] = $id;
+                            break; 
+                        }
+                    }
+                }
+            }
+        }
+
+        return view('admin.resultados.import-preview', compact('sesion', 'resultados_json', 'pilotos', 'campeonatos'));
+    }
+
+    public function storeImport(Request $request)
+    {
+        $sesion_id = $request->input('sesion_id');
+        $items = $request->input('items', []);
+
+        if (empty($items)) {
+            return Redirect::route('admin.resultados.import.form')->with('error', 'No se enviaron datos para importar.');
+        }
+
+        $guardados = 0;
+        foreach ($items as $item) {
+            if (empty($item['piloto_id'])) {
+                continue; // Ignorar si no seleccionaron piloto
+            }
+
+            // Convertir tiempos a decimal (segundos) o guardarlos como vienen si la DB los maneja como decimal.
+            // La BD tiene 'tiempo_total', 'mejor_tiempo', 'sector_1' como decimal. 
+            // Ojo: "1:16.389" no es decimal. Hay que parsearlo a segundos.
+            $parseTime = function($timeStr) {
+                if (empty($timeStr)) return null;
+                if (str_contains($timeStr, ':')) {
+                    $parts = explode(':', $timeStr);
+                    return ($parts[0] * 60) + (float)$parts[1];
+                }
+                return (float)$timeStr;
+            };
+
+            ResultadoSesion::updateOrCreate([
+                'sesion_id' => $sesion_id,
+                'piloto_id' => $item['piloto_id']
+            ], [
+                'posicion' => (isset($item['posicion']) && in_array(strtoupper(trim($item['posicion'])), ['NT', 'EX'])) ? null : ($item['posicion'] ?? null),
+                'vueltas' => $item['vueltas'] ?? null,
+                'tiempo_total' => $parseTime($item['tiempo_total'] ?? null),
+                'mejor_tiempo' => $parseTime($item['mejor_tiempo'] ?? null),
+                'diferencia_primero' => $parseTime($item['diferencia'] ?? null),
+                'sector_1' => $parseTime($item['sector_1'] ?? null),
+                'sector_2' => $parseTime($item['sector_2'] ?? null),
+                'sector_3' => $parseTime($item['sector_3'] ?? null),
+                'excluido' => (isset($item['posicion']) && strtoupper(trim($item['posicion'])) === 'EX') ? true : false,
+            ]);
+            $guardados++;
+        }
+
+        $sesion = SesionDefinicion::find($sesion_id);
+        
+        // Sincronizar puntos de la fecha después de la importación
+        if ($sesion) {
+            (new \App\Services\StandingsService())->syncFechaPuntos($sesion->fecha);
+        }
+
+        Session::flash('success', "Se importaron/actualizaron $guardados resultados exitosamente.");
+        return Redirect::route('admin.resultados.index', ['sesion_tipo' => $sesion->tipo]);
     }
 
     /**
@@ -230,7 +339,10 @@ class ResultadoSesionController extends Controller
             'observaciones.max' => 'Las observaciones no pueden superar los 1000 caracteres.',
         ]);
 
-        ResultadoSesion::create($validated);
+        $resultado = ResultadoSesion::create($validated);
+        
+        // Actualizar totales del campeonato (Ranking) sin sobreescribir puntos individuales
+        (new \App\Services\StandingsService())->syncChampionshipTotals($resultado->sesion->fecha->campeonato);
 
         Session::flash('success', 'Resultado creado exitosamente.');
         return Redirect::route('admin.resultados.index');
@@ -279,6 +391,9 @@ class ResultadoSesionController extends Controller
         ]);
 
         $resultado->update($validated);
+        
+        // Actualizar totales del campeonato (Ranking) sin sobreescribir puntos individuales
+        (new \App\Services\StandingsService())->syncChampionshipTotals($resultado->sesion->fecha->campeonato);
 
         Session::flash('success', 'Resultado actualizado exitosamente.');
         return Redirect::route('admin.resultados.index');

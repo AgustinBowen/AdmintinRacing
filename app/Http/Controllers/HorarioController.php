@@ -51,15 +51,15 @@ class HorarioController extends Controller
             [
                 'key' => 'sesion_tipo',
                 'type' => 'select',
-                'field' => 'tipo',
-                'placeholder' => 'Todos los tipos',
+                'field' => 'sesion.tipo',
+                'placeholder' => 'Todas las sesiones',
                 'options' => SesionDefinicion::TIPOS
             ],
             [
                 'key' => 'fecha',
                 'type' => 'select',
-                'field' => 'fecha.nombre', // para filtrar por relación
-                'placeholder' => 'Todos los tipos',
+                'field' => 'fecha_id', // Use the foreign key column directly
+                'placeholder' => 'Todas las fechas',
                 'options' => Fecha::distinct()
                     ->orderBy('nombre', 'desc')
                     ->pluck('nombre', 'id')
@@ -93,9 +93,7 @@ class HorarioController extends Controller
     public function create()
     {
         $fechas = Fecha::all();
-        $fechas = Fecha::pluck('nombre', 'id');
         $sesiones = SesionDefinicion::all();
-        $sesiones = SesionDefinicion::pluck('tipo', 'id');
 
         return view('admin.horarios.create', compact('fechas', 'sesiones'));
     }
@@ -152,8 +150,8 @@ class HorarioController extends Controller
      */
     public function edit(Horario $horario)
     {
-        $fechas = Fecha::pluck('nombre', 'id');
-        $sesiones = SesionDefinicion::pluck('tipo', 'id');
+        $fechas = Fecha::all();
+        $sesiones = SesionDefinicion::all();
 
         return view('admin.horarios.edit', compact('horario', 'fechas', 'sesiones'));
     }
@@ -169,8 +167,9 @@ class HorarioController extends Controller
                 'required',
                 'uuid',
                 'exists:sesiones_definicion,id',
-                function ($attribute, $value, $fail) {
-                    if (Horario::existePorSesion($value)) {
+                function ($attribute, $value, $fail) use ($horario) {
+                    // Check if another schedule (different from the current one) exists for this session
+                    if (Horario::where('sesion_id', $value)->where('id', '!=', $horario->id)->exists()) {
                         $fail('Ya existe un horario para esta sesión.');
                     }
                 },
@@ -196,6 +195,41 @@ class HorarioController extends Controller
 
         Session::flash('success', 'Horario actualizado exitosamente.');
         return Redirect::route('admin.horarios.index');
+    }
+
+    /**
+     * Quick update of horario from the Fecha show page (fecha_sesion + hora + duracion)
+     */
+    public function updateFromFecha(Request $request, Horario $horario)
+    {
+        $validated = $request->validate([
+            'fecha_sesion'  => 'required|date',
+            'horario'       => 'required|date_format:H:i',
+            'duracion'      => 'nullable|string|max:255',
+            'observaciones' => 'nullable|string',
+        ]);
+
+        try {
+            $fechaSesion = $validated['fecha_sesion'];
+            $timestamp = Carbon::parse("$fechaSesion {$validated['horario']}");
+
+            $horario->update([
+                'horario'       => $timestamp,
+                'duracion'      => $validated['duracion'],
+                'observaciones' => $validated['observaciones'],
+            ]);
+
+            // Also update fecha_sesion on the related SesionDefinicion
+            if ($horario->sesion) {
+                $horario->sesion->update(['fecha_sesion' => $fechaSesion]);
+            }
+
+            Session::flash('success', 'Horario actualizado exitosamente.');
+            return Redirect::back();
+        } catch (\Exception $e) {
+            Session::flash('error', 'Error al actualizar: ' . $e->getMessage());
+            return Redirect::back();
+        }
     }
 
     /**

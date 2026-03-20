@@ -26,6 +26,7 @@ class Fecha extends Model
     {
         return $this->belongsTo(Circuito::class, 'circuito_id');
     }
+
     public function sesiones()
     {
         return $this->hasMany(SesionDefinicion::class, 'fecha_id');
@@ -39,5 +40,10 @@ class Fecha extends Model
     public function imagenes()
     {
         return $this->hasMany(Imagen::class);
+    }
+
+    public function sistemaPuntaje()
+    {
+        return $this->hasMany(SistemaPuntajeFecha::class, 'fecha_id');
     }
 }

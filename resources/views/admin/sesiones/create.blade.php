@@ -19,7 +19,7 @@
                     'type' => 'select',
                     'options' => $fechas,
                     'optionLabel' => 'nombre',
-                    'optionValue' => 'nombre',
+                    'optionValue' => 'id',
                     'required' => true,
                     'width' => 8
                 ],

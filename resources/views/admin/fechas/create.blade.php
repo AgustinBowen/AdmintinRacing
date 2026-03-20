@@ -50,10 +50,18 @@
                     'label' => 'Campeonato',
                     'type' => 'select',
                     'options' => $campeonatos,
-                    'optionLabel' => 'campeonato',
+                    'optionLabel' => 'nombre',
                     'optionValue' => 'id',
                     'required' => true,
                     'width' => 8
+                ],
+                [
+                    'name' => 'generar_cronograma',
+                    'label' => 'Generar Cronograma Estándar',
+                    'type' => 'checkbox',
+                    'checkboxLabel' => 'Crear automáticamente 8 sesiones estándares (Entrenamientos, Clasificación, Serie y Final) con horarios predefinidos',
+                    'value' => true,
+                    'width' => 12
                 ]
             ]
         ])

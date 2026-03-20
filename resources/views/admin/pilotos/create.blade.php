@@ -23,10 +23,31 @@
                 ],
                 [
                     'name' => 'pais',
-                    'label' => 'Pais',
+                    'label' => 'País',
                     'type' => 'text',
                     'placeholder' => 'Ej: Argentina',
                     'width' => 4
+                ],
+                [
+                    'name' => 'campeonato_id',
+                    'label' => 'Asignar a Campeonato (Opcional)',
+                    'type' => 'select',
+                    'options' => $campeonatos,
+                    'optionValue' => 'id',
+                    'optionLabel' => 'nombre',
+                    'value' => $campeonatoId,
+                    'required' => false,
+                    'width' => 8
+                ],
+                [
+                    'name' => 'numero_auto',
+                    'label' => 'N° de Auto',
+                    'type' => 'number',
+                    'min' => 0,
+                    'placeholder' => 'Ej: 1',
+                    'required' => false,
+                    'width' => 4,
+                    'help' => 'Sólo si se asignó un campeonato'
                 ]
             ]
         ])

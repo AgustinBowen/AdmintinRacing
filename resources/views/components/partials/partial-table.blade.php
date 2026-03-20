@@ -56,6 +56,17 @@
                     @if($showActions ?? true)
                         <td>
                             <div class="d-flex justify-content-center gap-1">
+                                @if(isset($rowActions))
+                                    @foreach($rowActions as $action)
+                                        <a href="{{ route($action['route'], $item) }}"
+                                           class="btn-modern {{ $action['class'] ?? 'btn-secondary-modern' }} p-2 text-white"
+                                           style="width: 32px; height: 32px;"
+                                           title="{{ $action['title'] ?? '' }}">
+                                            <i class="{{ $action['icon'] ?? 'fas fa-link' }}" style="font-size: 0.75rem;"></i>
+                                        </a>
+                                    @endforeach
+                                @endif
+
                                 @if($showView ?? true)
                                     <a href="{{ route($routePrefix . '.show', $item) }}"
                                        class="btn-modern btn-secondary-modern p-2"

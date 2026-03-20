@@ -17,5 +17,12 @@ class Piloto extends Model
         return $this->belongsToMany(Campeonato::class, 'pilotos_campeonato')
                     ->withPivot('numero_auto');
     }
-    
+
+    public function getNumeroAutoPivotAttribute()
+    {
+        if ($this->relationLoaded('campeonatos') && $this->campeonatos->count() > 0) {
+            return $this->campeonatos->first()->pivot->numero_auto ?? '-';
+        }
+        return '-';
+    }
 }

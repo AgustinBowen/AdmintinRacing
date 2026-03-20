@@ -38,14 +38,8 @@
         <ul class="sidebar-nav list-unstyled">
             <li class="nav-item">
                 <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Generador de Fechas Automatico</span>
+                    <i class="fas fa-gauge-high"></i>
+                    <span>Inicio</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -57,39 +51,39 @@
 
             <li class="nav-item">
                 <a href="{{ route('admin.circuitos.index') }}" class="nav-link {{ request()->routeIs('admin.circuitos.*') ? 'active' : '' }}">
-                    <i class="fas fa-map-marked-alt"></i>
+                    <i class="fas fa-road"></i>
                     <span>Circuitos</span>
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="{{ route('admin.pilotos.index') }}" class="nav-link {{ request()->routeIs('admin.pilotos.*') ? 'active' : '' }}">
-                    <i class="fas fa-user-circle"></i>
+                    <i class="fas fa-helmet-safety"></i>
                     <span>Pilotos</span>
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="{{ route('admin.fechas.index') }}" class="nav-link {{ request()->routeIs('admin.fechas.*') ? 'active' : '' }}">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas fa-calendar-days"></i>
                     <span>Fechas</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('admin.sesiones.index') }}" class="nav-link {{ request()->routeIs('admin.sesiones.*') ? 'active' : '' }}">
-                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-stopwatch"></i>
                     <span>Sesiones</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('admin.resultados.index') }}" class="nav-link {{ request()->routeIs('admin.resultados.*') ? 'active' : '' }}">
-                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-list-ol"></i>
                     <span>Resultados</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('admin.horarios.index') }}" class="nav-link {{ request()->routeIs('admin.horarios.*') ? 'active' : '' }}">
-                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-clock-rotate-left"></i>
                     <span>Horarios</span>
                 </a>
             </li>
