@@ -32,17 +32,17 @@ trait SearchableSelectTrait
         if (!empty($query)) {
             $modelInstance = $modelInstance->where(function (Builder $q) use ($query, $searchFields) {
                 foreach ($searchFields as $field) {
-                    // Soporte para campos relacionados (ej: 'fecha.nombre')
-                    if (strpos($field, '.') !== false) {
+                    // Soporte para campos relacionados (ej: 'sesion.fecha.nombre')
+                    if (str_contains($field, '.')) {
                         $parts = explode('.', $field);
-                        $relation = $parts[0];
-                        $relationField = $parts[1];
+                        $relationField = array_pop($parts);
+                        $relationName = implode('.', $parts);
                         
-                        $q->orWhereHas($relation, function (Builder $subQ) use ($relationField, $query) {
-                            $subQ->whereRaw("LOWER($relationField) LIKE LOWER(?)", ["%$query%"]);
+                        $q->orWhereHas($relationName, function (Builder $subQ) use ($relationField, $query) {
+                            $subQ->whereRaw("unaccent(lower(CAST($relationField AS TEXT))) LIKE unaccent(lower(?))", ["%$query%"]);
                         });
                     } else {
-                        $q->orWhereRaw("LOWER($field) LIKE LOWER(?)", ["%$query%"]);
+                        $q->orWhereRaw("unaccent(lower(CAST($field AS TEXT))) LIKE unaccent(lower(?))", ["%$query%"]);
                     }
                 }
             });

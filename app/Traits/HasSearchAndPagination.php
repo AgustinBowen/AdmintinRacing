@@ -19,15 +19,17 @@ trait HasSearchAndPagination
             $query->where(function ($q) use ($searchTerm, $searchFields) {
                 foreach ($searchFields as $field) {
                     if (str_contains($field, '.')) {
-                        // Búsqueda en relaciones
-                        [$relationName, $relationField] = explode('.', $field);
+                        // Búsqueda en relaciones (incluso anidadas como 'sesion.fecha.nombre')
+                        $parts = explode('.', $field);
+                        $relationField = array_pop($parts);
+                        $relationName = implode('.', $parts);
 
                         $q->orWhereHas($relationName, function ($relationQuery) use ($relationField, $searchTerm) {
-                            $relationQuery->whereRaw("unaccent(lower($relationField)) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
+                            $relationQuery->whereRaw("unaccent(lower(CAST($relationField AS TEXT))) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
                         });
                     } else {
                         // Búsqueda en campos directos
-                        $q->orWhereRaw("unaccent(lower($field)) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
+                        $q->orWhereRaw("unaccent(lower(CAST($field AS TEXT))) LIKE unaccent(lower(?))", ["%$searchTerm%"]);
                     }
                 }
             });

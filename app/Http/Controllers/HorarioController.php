@@ -24,7 +24,7 @@ class HorarioController extends Controller
         $query = Horario::query();
 
         // Aplicar búsqueda
-        $searchFields = ['fecha', 'sesion']; // Campos en los que buscar
+        $searchFields = ['fecha.nombre', 'sesion.tipo']; // Campos en los que buscar
         $this->applySearch($query, $request, $searchFields);
 
         // Definir columnas de la tabla

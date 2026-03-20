@@ -27,7 +27,7 @@ class FechaController extends Controller
         $query = Fecha::query();
 
         // Aplicar búsqueda
-        $searchFields = ['nombre', 'circuito', 'campeonato']; // Campos en los que buscar
+        $searchFields = ['nombre', 'circuito.nombre', 'campeonato.nombre']; // Campos en los que buscar
         $this->applySearch($query, $request, $searchFields);
 
         // Definir columnas de la tabla
