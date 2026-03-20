@@ -20,7 +20,7 @@ class Campeonato extends Model
     public function pilotos()
     {
         return $this->belongsToMany(Piloto::class, 'pilotos_campeonato')
-                    ->withPivot('numero_auto');
+                    ->withPivot('id', 'numero_auto');
     }
     
     public function posicionesCampeonato()

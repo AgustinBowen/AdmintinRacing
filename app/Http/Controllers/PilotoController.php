@@ -175,10 +175,13 @@ class PilotoController extends Controller
         if ($request->filled('campeonato_id')) {
             // Buscamos si ya existe la relación para no generar un nuevo UUID innecesariamente si usamos sync
             $pivot = $piloto->campeonatos()->where('campeonatos.id', $validated['campeonato_id'])->first();
+            $pivotId = ($pivot && isset($pivot->pivot->id) && $pivot->pivot->id)
+                ? $pivot->pivot->id 
+                : \Illuminate\Support\Str::uuid()->toString();
             
             $piloto->campeonatos()->syncWithoutDetaching([
                 $validated['campeonato_id'] => [
-                    'id' => $pivot ? $pivot->pivot->id : \Illuminate\Support\Str::uuid()->toString(),
+                    'id' => $pivotId,
                     'numero_auto' => $validated['numero_auto'] ?? 0
                 ]
             ]);
