@@ -275,6 +275,24 @@ class ResultadoSesionController extends Controller
      */
     public function store(Request $request)
     {
+        $parseTime = function($timeStr) {
+            if (empty($timeStr)) return null;
+            if (str_contains($timeStr, ':')) {
+                $parts = explode(':', $timeStr);
+                return ($parts[0] * 60) + (float)$parts[1];
+            }
+            return (float)$timeStr;
+        };
+
+        $request->merge([
+            'tiempo_total' => $parseTime($request->input('tiempo_total')),
+            'mejor_tiempo' => $parseTime($request->input('mejor_tiempo')),
+            'diferencia_primero' => $parseTime($request->input('diferencia_primero')),
+            'sector_1' => $parseTime($request->input('sector_1')),
+            'sector_2' => $parseTime($request->input('sector_2')),
+            'sector_3' => $parseTime($request->input('sector_3')),
+        ]);
+
         $validated = $request->validate([
             'sesion_id' => 'required|exists:sesiones_definicion,id',
             'piloto_id' => [
@@ -373,6 +391,24 @@ class ResultadoSesionController extends Controller
      */
     public function update(Request $request, ResultadoSesion $resultado)
     {
+        $parseTime = function($timeStr) {
+            if (empty($timeStr)) return null;
+            if (str_contains($timeStr, ':')) {
+                $parts = explode(':', $timeStr);
+                return ($parts[0] * 60) + (float)$parts[1];
+            }
+            return (float)$timeStr;
+        };
+
+        $request->merge([
+            'tiempo_total' => $parseTime($request->input('tiempo_total')),
+            'mejor_tiempo' => $parseTime($request->input('mejor_tiempo')),
+            'diferencia_primero' => $parseTime($request->input('diferencia_primero')),
+            'sector_1' => $parseTime($request->input('sector_1')),
+            'sector_2' => $parseTime($request->input('sector_2')),
+            'sector_3' => $parseTime($request->input('sector_3')),
+        ]);
+
         $validated = $request->validate([
             'sesion_id' => 'required|exists:sesiones_definicion,id',
             'piloto_id' => 'required|exists:pilotos,id',

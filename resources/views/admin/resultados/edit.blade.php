@@ -50,7 +50,7 @@
                     'label' => 'Tiempo total carrera',
                     'type' => 'text',
                     'placeholder' => 'Ejemplo: 16:25.543',
-                    'value' => $resultado->tiempo_total,
+                    'value' => str_replace('—', '', $resultado->tiempo_total_formateado),
                     'required' => false,
                     'width' => 3
                 ],
@@ -59,7 +59,7 @@
                     'label' => 'Mejor Tiempo',
                     'type' => 'text',
                     'placeholder' => 'Ejemplo: 1:25.543',
-                    'value' => $resultado->mejor_tiempo,
+                    'value' => str_replace('—', '', $resultado->mejor_tiempo_formateado),
                     'required' => false,
                     'width' => 3
                 ],
@@ -68,7 +68,7 @@
                     'label' => 'Diferencia con el Primero',
                     'type' => 'text',
                     'placeholder' => 'Ejemplo: 1.234',
-                    'value' => $resultado->diferencia_primero,
+                    'value' => str_replace('—', '', $resultado->diferencia_primero_formateada),
                     'required' => false,
                     'width' => 3
                 ],
@@ -77,7 +77,7 @@
                     'label' => 'Mejor Sector 1',
                     'type' => 'text',
                     'placeholder' => 'Ejemplo: 20.556',
-                    'value' => $resultado->sector_1,
+                    'value' => str_replace('—', '', $resultado->sector_1_formateado),
                     'required' => false,
                     'width' => 3
                 ],
@@ -86,7 +86,7 @@
                     'label' => 'Mejor Sector 2',
                     'type' => 'text',
                     'placeholder' => 'Ejemplo: 40.343',
-                    'value' => $resultado->sector_2,
+                    'value' => str_replace('—', '', $resultado->sector_2_formateado),
                     'required' => false,
                     'width' => 3
                 ],
@@ -95,7 +95,7 @@
                     'label' => 'Mejor Sector 3',
                     'type' => 'text',
                     'placeholder' => 'Ejemplo: 48.234',
-                    'value' => $resultado->sector_3,
+                    'value' => str_replace('—', '', $resultado->sector_3_formateado),
                     'required' => false,
                     'width' => 3
                 ],
