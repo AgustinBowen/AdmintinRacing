@@ -9,6 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Traits\HasSearchAndPagination;
 use Illuminate\Support\Facades\Redirect;
+use App\Http\Requests\StoreCampeonatoRequest;
+use App\Http\Requests\UpdateCampeonatoRequest;
+use App\Http\Requests\UpdateCampeonatoScoringRequest;
+use App\Http\Requests\AddCampeonatoScoringRequest;
 
 class CampeonatoController extends Controller
 {
@@ -17,7 +21,7 @@ class CampeonatoController extends Controller
     public function index(Request $request)
     {
         $this->setupPagination();
-        $query = Campeonato::query();
+        $query = Campeonato::query()->where('categoria_id', session('categoria_id'));
         $searchFields = ['nombre', 'anio'];
         $this->applySearch($query, $request, $searchFields);
         $columns = [
@@ -36,12 +40,10 @@ class CampeonatoController extends Controller
         return view('admin.campeonatos.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCampeonatoRequest $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'anio'   => 'required|integer|min:1900|max:' . (date('Y') + 10),
-        ]);
+        $validated = $request->validated();
+        $validated['categoria_id'] = session('categoria_id');
         $campeonato = Campeonato::create($validated);
 
         // Seed default scoring
@@ -66,12 +68,9 @@ class CampeonatoController extends Controller
         return view('admin.campeonatos.edit', compact('campeonato'));
     }
 
-    public function update(Request $request, Campeonato $campeonato)
+    public function update(UpdateCampeonatoRequest $request, Campeonato $campeonato)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'anio'   => 'required|integer|min:1900|max:' . (date('Y') + 10),
-        ]);
+        $validated = $request->validated();
         $campeonato->update($validated);
         return redirect()->route('admin.campeonatos.index')
             ->with('success', 'Campeonato actualizado exitosamente.');
@@ -119,10 +118,9 @@ class CampeonatoController extends Controller
     /**
      * Update a single scoring row's points value.
      */
-    public function updateScoring(Request $request, Campeonato $campeonato, SistemaPuntaje $sistemaPuntaje)
+    public function updateScoring(UpdateCampeonatoScoringRequest $request, Campeonato $campeonato, SistemaPuntaje $sistemaPuntaje)
     {
-        $request->validate(['puntos' => 'required|numeric|min:0|max:9999']);
-        $sistemaPuntaje->update(['puntos' => $request->puntos]);
+        $sistemaPuntaje->update(['puntos' => $request->validated()['puntos']]);
         
         // Sincronizar todo al cambiar reglas
         (new \App\Services\StandingsService())->sincronizar($campeonato);
@@ -133,13 +131,9 @@ class CampeonatoController extends Controller
     /**
      * Add a new position row to the scoring table.
      */
-    public function addScoring(Request $request, Campeonato $campeonato)
+    public function addScoring(AddCampeonatoScoringRequest $request, Campeonato $campeonato)
     {
-        $request->validate([
-            'tipo_sesion' => 'required|in:presentacion,clasificacion,serie,final',
-            'posicion'    => 'nullable|integer|min:1|max:999',
-            'puntos'      => 'required|integer|min:0|max:9999',
-        ]);
+        $validated = $request->validated();
 
         $exists = SistemaPuntaje::where('campeonato_id', $campeonato->id)
             ->where('tipo_sesion', $request->tipo_sesion)
@@ -154,7 +148,7 @@ class CampeonatoController extends Controller
             'campeonato_id' => $campeonato->id,
             'tipo_sesion'   => $request->tipo_sesion,
             'posicion'      => $request->posicion,
-            'puntos'        => $request->puntos,
+            'puntos'        => $validated['puntos'],
         ]);
 
         // Sincronizar todo al cambiar reglas

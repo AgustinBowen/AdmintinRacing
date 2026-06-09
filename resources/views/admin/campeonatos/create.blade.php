@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.form')
 @section('title', 'Crear Campeonato')
 
 @section('content')

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.form')
 @section('title', 'Editar Resultado de Sesión')
 
 @section('content')

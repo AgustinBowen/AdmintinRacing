@@ -10,9 +10,15 @@ use App\Models\Horario;
 use App\Models\ResultadoSesion;
 use App\Models\SistemaPuntajeFecha;
 use App\Services\StandingsService;
+use App\Services\CronogramaService;
+use App\Services\AcumuladosService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Traits\HasSearchAndPagination;
+use App\Http\Requests\StoreFechaRequest;
+use App\Http\Requests\UpdateFechaRequest;
+use App\Http\Requests\AddFechaScoringRequest;
+use App\Http\Requests\UpdateFechaScoringRequest;
 
 class FechaController extends Controller
 {
@@ -24,7 +30,7 @@ class FechaController extends Controller
         $this->setupPagination();
 
         // Crear consulta base
-        $query = Fecha::query();
+        $query = Fecha::query()->where('campeonato_id', session('campeonato_id'));
 
         // Aplicar búsqueda
         $searchFields = ['nombre', 'circuito.nombre', 'campeonato.nombre']; // Campos en los que buscar
@@ -61,22 +67,15 @@ class FechaController extends Controller
 
     public function create()
     {
-        $campeonatos = Campeonato::orderBy('anio', 'desc')->get();
+        $campeonatos = Campeonato::where('categoria_id', session('categoria_id'))->orderBy('anio', 'desc')->get();
         $circuitos = Circuito::orderBy('nombre')->get();
 
         return view('admin.fechas.create', compact('campeonatos', 'circuitos'));
     }
 
-    public function store(Request $request)
+    public function store(StoreFechaRequest $request, CronogramaService $cronogramaService)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'fecha_desde' => 'required|date',
-            'fecha_hasta' => 'required|date',
-            'campeonato_id' => 'required|exists:campeonatos,id',
-            'circuito_id' => 'required|exists:circuitos,id',
-            'generar_cronograma' => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
         $generarCronograma = $request->has('generar_cronograma') && $request->generar_cronograma;
         unset($validated['generar_cronograma']);
@@ -84,7 +83,7 @@ class FechaController extends Controller
         $fecha = Fecha::create($validated);
 
         if ($generarCronograma) {
-            $this->generarCronogramaEstandar($fecha);
+            $cronogramaService->generarCronogramaEstandar($fecha);
         }
 
         return redirect()->route('admin.fechas.index')
@@ -116,21 +115,15 @@ class FechaController extends Controller
 
     public function edit(Fecha $fecha)
     {
-        $campeonatos = Campeonato::orderBy('anio', 'desc')->get();
+        $campeonatos = Campeonato::where('categoria_id', session('categoria_id'))->orderBy('anio', 'desc')->get();
         $circuitos = Circuito::orderBy('nombre')->get();
 
         return view('admin.fechas.edit', compact('fecha', 'campeonatos', 'circuitos'));
     }
 
-    public function update(Request $request, Fecha $fecha)
+    public function update(UpdateFechaRequest $request, Fecha $fecha)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'fecha_desde' => 'required|date',
-            'fecha_hasta' => 'required|date',
-            'campeonato_id' => 'required|exists:campeonatos,id',
-            'circuito_id' => 'required|exists:circuitos,id',
-        ]);
+        $validated = $request->validated();
 
         $fecha->update($validated);
 
@@ -180,9 +173,9 @@ class FechaController extends Controller
     /**
      * Generar sesiones estándar automáticamente (desde el botón en el show)
      */
-    public function generarSesiones(Fecha $fecha)
+    public function generarSesiones(Fecha $fecha, CronogramaService $cronogramaService)
     {
-        $this->generarCronogramaEstandar($fecha);
+        $cronogramaService->generarCronogramaEstandar($fecha);
 
         return redirect()->route('admin.fechas.show', $fecha)
             ->with('success', 'Sesiones y horarios generados exitosamente.');
@@ -202,115 +195,14 @@ class FechaController extends Controller
     }
 
     /**
-     * Generar un cronograma estándar de sesiones y horarios para una fecha
-     */
-    private function generarCronogramaEstandar(Fecha $fecha)
-    {
-        $dia1 = \Carbon\Carbon::parse($fecha->fecha_desde);
-        $dia2 = $dia1->copy()->addDay();
-        $diaFinal = \Carbon\Carbon::parse($fecha->fecha_hasta);
-
-        $sesiones = [
-            ['tipo' => 'entrenamiento_1',        'hora' => '09:00', 'duracion' => '15 min',    'dia' => $dia1],
-            ['tipo' => 'entrenamiento_2',        'hora' => '09:30', 'duracion' => '15 min',    'dia' => $dia1],
-            ['tipo' => 'entrenamiento_3',        'hora' => '10:00', 'duracion' => '15 min',    'dia' => $dia1],
-            ['tipo' => 'entrenamiento_4',        'hora' => '10:30', 'duracion' => '15 min',    'dia' => $dia1],
-            ['tipo' => 'acumulados',             'hora' => '11:00', 'duracion' => 'Calculado', 'dia' => $dia1],
-            ['tipo' => 'clasificacion',          'hora' => '09:00', 'duracion' => '10 min',    'dia' => $dia2],
-            ['tipo' => 'serie_clasificatoria_1', 'hora' => '12:00', 'duracion' => '6 vueltas', 'dia' => $dia2],
-            ['tipo' => 'serie_clasificatoria_2', 'hora' => '13:00', 'duracion' => '6 vueltas', 'dia' => $dia2],
-            ['tipo' => 'serie_clasificatoria_3', 'hora' => '14:00', 'duracion' => '6 vueltas', 'dia' => $dia2],
-            ['tipo' => 'carrera_final',          'hora' => '16:00', 'duracion' => '12 vueltas','dia' => $diaFinal],
-        ];
-
-        foreach ($sesiones as $s) {
-            // Skip if a session of this type already exists for this fecha
-            $existe = SesionDefinicion::where('fecha_id', $fecha->id)
-                ->where('tipo', $s['tipo'])
-                ->exists();
-
-            if ($existe) {
-                continue;
-            }
-
-            $sesion = SesionDefinicion::create([
-                'fecha_id'     => $fecha->id,
-                'tipo'         => $s['tipo'],
-                'fecha_sesion' => $s['dia']->format('Y-m-d'),
-            ]);
-
-            Horario::create([
-                'fecha_id'      => $fecha->id,
-                'sesion_id'     => $sesion->id,
-                'horario'       => Carbon::parse($s['dia']->format('Y-m-d') . ' ' . $s['hora']),
-                'duracion'      => $s['duracion'],
-                'observaciones' => null,
-            ]);
-        }
-    }
-
-    /**
      * Generar la sesión de resultados ACUMULADOS (mejor tiempo de cada piloto en entrenamientos)
      */
-    public function generarAcumulados(Fecha $fecha)
+    public function generarAcumulados(Fecha $fecha, AcumuladosService $acumuladosService)
     {
-        // 1. Obtener o crear la sesión de Acumulados
-        $sesionAcumulados = SesionDefinicion::firstOrCreate([
-            'fecha_id' => $fecha->id,
-            'tipo'     => 'acumulados'
-        ], [
-            'fecha_sesion' => $fecha->fecha_desde // Por defecto el primer día
-        ]);
+        $success = $acumuladosService->generarAcumulados($fecha);
 
-        // 2. Limpiar resultados anteriores de acumulados
-        $sesionAcumulados->resultados()->delete();
-
-        // 3. Obtener todos los resultados de entrenamientos de esta fecha
-        $resultadosEntrenamientos = \App\Models\ResultadoSesion::whereHas('sesion', function($q) use ($fecha) {
-            $q->where('fecha_id', $fecha->id)
-              ->where('tipo', 'like', 'entrenamiento_%');
-        })->get();
-
-        if ($resultadosEntrenamientos->isEmpty()) {
+        if (!$success) {
             return redirect()->back()->with('error', 'No hay resultados de entrenamiento para generar los acumulados.');
-        }
-
-        // 4. Agrupar por piloto y encontrar el mejor tiempo
-        $mejorPorPiloto = [];
-        foreach ($resultadosEntrenamientos as $res) {
-            if (!$res->mejor_tiempo) continue;
-            
-            if (!isset($mejorPorPiloto[$res->piloto_id]) || $res->mejor_tiempo < $mejorPorPiloto[$res->piloto_id]['tiempo']) {
-                $sessionName = SesionDefinicion::TIPOS[$res->sesion->tipo] ?? $res->sesion->tipo;
-                $mejorPorPiloto[$res->piloto_id] = [
-                    'tiempo' => $res->mejor_tiempo,
-                    'vueltas' => max($res->vueltas ?? 0, isset($mejorPorPiloto[$res->piloto_id]) ? $mejorPorPiloto[$res->piloto_id]['vueltas'] : 0),
-                    'en_sesion' => $sessionName
-                ];
-            }
-        }
-
-        // 5. Ordenar por tiempo ascendente
-        uasort($mejorPorPiloto, function($a, $b) {
-            return $a['tiempo'] <=> $b['tiempo'];
-        });
-
-        // 6. Crear los nuevos resultados de acumulados
-        $posicion = 1;
-        $primerTiempo = !empty($mejorPorPiloto) ? reset($mejorPorPiloto)['tiempo'] : 0;
-
-        foreach ($mejorPorPiloto as $pilotoId => $data) {
-            \App\Models\ResultadoSesion::create([
-                'sesion_id'          => $sesionAcumulados->id,
-                'piloto_id'          => $pilotoId,
-                'posicion'           => $posicion++,
-                'mejor_tiempo'       => $data['tiempo'],
-                'vueltas'            => $data['vueltas'],
-                'diferencia_primero' => $data['tiempo'] - $primerTiempo,
-                'observaciones'      => $data['en_sesion'],
-                'puntos'             => 0,
-                'presente'           => true
-            ]);
         }
 
         return redirect()->route('admin.fechas.resultados', $fecha)
@@ -353,13 +245,9 @@ class FechaController extends Controller
     /**
      * Add a new scoring row for a fecha.
      */
-    public function addScoringFecha(Request $request, Fecha $fecha)
+    public function addScoringFecha(AddFechaScoringRequest $request, Fecha $fecha)
     {
-        $request->validate([
-            'tipo_sesion' => 'required|in:presentacion,clasificacion,serie,final',
-            'posicion'    => 'nullable|integer|min:1|max:999',
-            'puntos'      => 'required|integer|min:0|max:9999',
-        ]);
+        $validated = $request->validated();
 
         $exists = SistemaPuntajeFecha::where('fecha_id', $fecha->id)
             ->where('tipo_sesion', $request->tipo_sesion)
@@ -374,7 +262,7 @@ class FechaController extends Controller
             'fecha_id'    => $fecha->id,
             'tipo_sesion' => $request->tipo_sesion,
             'posicion'    => $request->posicion,
-            'puntos'      => $request->puntos,
+            'puntos'      => $validated['puntos'],
         ]);
 
         // Sincronizar puntos de la fecha
@@ -386,10 +274,9 @@ class FechaController extends Controller
     /**
      * Update a single scoring row for a fecha.
      */
-    public function updateScoringFecha(Request $request, Fecha $fecha, SistemaPuntajeFecha $sistemaPuntajeFecha)
+    public function updateScoringFecha(UpdateFechaScoringRequest $request, Fecha $fecha, SistemaPuntajeFecha $sistemaPuntajeFecha)
     {
-        $request->validate(['puntos' => 'required|integer|min:0|max:9999']);
-        $sistemaPuntajeFecha->update(['puntos' => $request->puntos]);
+        $sistemaPuntajeFecha->update(['puntos' => $request->validated()['puntos']]);
 
         // Sincronizar puntos de la fecha
         (new \App\Services\StandingsService())->syncFechaPuntos($fecha);

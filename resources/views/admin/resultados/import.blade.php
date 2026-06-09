@@ -1,77 +1,67 @@
 @extends('layouts.admin')
-
 @section('title', 'Importar Resultados (OCR/PDF)')
 
 @section('content')
-@include('components.admin.page-header', [
-    'title' => 'Importar Resultados de Sesión'
-])
+<div class="view-head">
+    <h1>IMPORTAR RESULTADOS <span class="lap">SELECCIONAR ARCHIVO Y SESIÓN</span></h1>
+</div>
 
-<div class="row">
-    <div class="col-md-10">
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <h5 class="mb-0 fw-semibold">Subir Foto o Planilla PDF Official</h5>
-            </div>
-            <div class="card-body-modern">
-                <div class="alert alert-info border-0 rounded-4">
-                    <i class="fas fa-info-circle me-2"></i> Esta herramienta puede leer la planilla directamente desde un archivo <strong>PDF oficial</strong> (recomendado) o intentarlo a través de Inteligencia Artificial (OCR) desde una foto. Los resultados pasarán primero por una Vista Previa Editable.
-                </div>
+<div style="background:var(--carbon-2); border-left:3px solid var(--racing); padding:16px; margin-bottom:24px; font-family:var(--font-sans); font-size:14px; color:var(--white);">
+    <i class="fas fa-info-circle" style="color:var(--racing); margin-right:8px;"></i>
+    Esta herramienta puede leer la planilla directamente desde un archivo <strong>PDF oficial</strong> (recomendado) o intentarlo a través de Inteligencia Artificial (OCR) desde una foto. Los resultados pasarán primero por una Vista Previa Editable.
+</div>
 
-                <div class="row g-3 mt-2">
-                    <div class="col-12">
-                        <div class="form-field-container">
-                            <label class="form-label fw-medium mb-2" style="color: hsl(var(--foreground)); font-size: 0.875rem;">
-                                Seleccionar Sesión *
-                            </label>
-                            <select id="sesion_id" class="input-modern" required>
-                                <option value="">Seleccionar...</option>
-                                @foreach($sesiones as $s)
-                                    <option value="{{ $s->id }}">{{ $s->tipo }} - {{ $s->fecha->nombre ?? 'Sin fecha' }}</option>
-                                @endforeach
-                            </select>
-                            <small class="form-help">¿A qué sesión pertenecen estos resultados?</small>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-field-container">
-                            <label class="form-label fw-medium mb-2" style="color: hsl(var(--foreground)); font-size: 0.875rem;">
-                                Archivo (PDF, JPG, PNG) *
-                            </label>
-                            <input type="file" id="result_file" accept=".pdf, image/*" class="input-modern" required multiple>
-                            <small class="form-help">Sube la planilla PDF oficial o varias fotos claras de los resultados.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-actions mt-4 pt-3 border-top">
-                    <button type="button" id="btnProcesarFile" class="btn-modern btn-primary-modern">
-                        <i class="fas fa-magic me-2"></i> Analizar y Extraer Resultados
-                    </button>
-                    <a href="{{ route('admin.resultados.index') }}" class="btn-modern btn-secondary-modern">
-                        Cancelar
-                    </a>
-                </div>
-                
-                <div id="loadingStatus" class="mt-3 text-primary d-none">
-                    <i class="fas fa-spinner fa-spin me-2"></i> Analizando documento, este proceso puede tardar unos segundos...
-                </div>
-                
-                <div id="errorStatus" class="mt-3 text-danger d-none">
-                </div>
-            </div>
+<div class="form-card" style="max-width:800px; margin:0;">
+    <h2 style="font-family:var(--font-display); font-size:20px; font-weight:600; margin-bottom:24px;">Subir Planilla PDF o Foto</h2>
+    
+    <div class="fgrid">
+        <div class="field">
+            <label>Seleccionar Fecha *</label>
+            <select id="fecha_id" required>
+                <option value="">Seleccionar...</option>
+                @foreach($fechas as $f)
+                    <option value="{{ $f->id }}">{{ $f->nombre }} ({{ $f->campeonato->nombre ?? 'Sin campeonato' }})</option>
+                @endforeach
+            </select>
         </div>
+
+        <div class="field">
+            <label>Seleccionar Sesión *</label>
+            <select id="sesion_id" required disabled>
+                <option value="">Primero selecciona una fecha...</option>
+                @foreach($sesiones as $s)
+                    <option value="{{ $s->id }}" data-fecha-id="{{ $s->fecha_id }}">{{ $s->tipo }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="field full">
+            <label>Archivo (PDF, JPG, PNG) *</label>
+            <input type="file" id="result_file" accept=".pdf, image/*" required multiple style="background:var(--carbon); border:1px solid var(--line); color:var(--white); padding:8px;">
+            <small class="form-help">Sube la planilla PDF oficial o varias fotos claras de los resultados.</small>
+        </div>
+    </div>
+
+    <div id="loadingStatus" style="display:none; color:var(--gray); margin-top:20px; font-size:14px;">
+        <i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> <span id="loadingMsg">Analizando documento...</span>
+    </div>
+    
+    <div id="errorStatus" style="display:none; color:var(--racing); margin-top:20px; font-size:14px; padding:12px; background:rgba(225,6,0,0.1); border-left:2px solid var(--racing);">
+    </div>
+
+    <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line); display:flex; gap:12px; justify-content:flex-end;">
+        <a href="{{ route('admin.resultados.index') }}" class="btn ghost">Cancelar</a>
+        <button type="button" id="btnProcesarFile" class="btn" style="background:var(--white); color:var(--black);">
+            ANALIZAR Y EXTRAER RESULTADOS
+        </button>
     </div>
 </div>
 
-<form id="previewForm" action="{{ route('admin.resultados.import.preview') }}" method="POST" class="d-none">
+<form id="previewForm" action="{{ route('admin.resultados.import.preview') }}" method="POST" style="display:none;">
     @csrf
     <input type="hidden" name="sesion_id" id="hidden_sesion_id">
     <textarea name="resultados_json" id="hidden_resultados_json"></textarea>
 </form>
-
-@endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -80,29 +70,63 @@
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const fechaSelect = document.getElementById('fecha_id');
+        const sesionSelect = document.getElementById('sesion_id');
+        
+        const originalOptions = Array.from(sesionSelect.querySelectorAll('option')).filter(opt => opt.value !== "");
+
+        fechaSelect.addEventListener('change', function() {
+            const fechaId = this.value;
+            
+            sesionSelect.innerHTML = '';
+            
+            if (fechaId) {
+                sesionSelect.disabled = false;
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = "";
+                defaultOpt.textContent = "Seleccionar...";
+                sesionSelect.appendChild(defaultOpt);
+                
+                originalOptions.forEach(opt => {
+                    if (opt.getAttribute('data-fecha-id') === fechaId) {
+                        sesionSelect.appendChild(opt.cloneNode(true));
+                    }
+                });
+            } else {
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = "";
+                defaultOpt.textContent = "Primero selecciona una fecha...";
+                sesionSelect.appendChild(defaultOpt);
+                sesionSelect.disabled = true;
+            }
+        });
+    });
+
     document.getElementById('btnProcesarFile').addEventListener('click', async function() {
         const fileInput = document.getElementById('result_file');
         const sesionId = document.getElementById('sesion_id').value;
         const loading = document.getElementById('loadingStatus');
         const error = document.getElementById('errorStatus');
+        const loadingMsg = document.getElementById('loadingMsg');
         
-        error.classList.add('d-none');
+        error.style.display = 'none';
 
         if (!sesionId) {
             error.innerText = "Por favor selecciona una sesión.";
-            error.classList.remove('d-none');
+            error.style.display = 'block';
             return;
         }
 
         if (!fileInput.files || fileInput.files.length === 0) {
             error.innerText = "Por favor selecciona un archivo.";
-            error.classList.remove('d-none');
+            error.style.display = 'block';
             return;
         }
 
         const file = fileInput.files[0];
 
-        loading.classList.remove('d-none');
+        loading.style.display = 'block';
         this.disabled = true;
 
         try {
@@ -112,7 +136,7 @@
                 const file = fileInput.files[i];
 
                 if (file.type === 'application/pdf') {
-                    loading.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analizando PDF ' + (i + 1) + ' de ' + fileInput.files.length + '...';
+                    loadingMsg.innerText = 'Analizando PDF ' + (i + 1) + ' de ' + fileInput.files.length + '...';
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await pdfjsLib.getDocument({data: new Uint8Array(arrayBuffer)}).promise;
 
@@ -134,21 +158,18 @@
                             }
                         }
 
-                        // Sort lines from top to bottom (PDF Y is bottom-up usually)
                         let sortedY = linesByY.sort((a,b) => b.y - a.y);
                         for(let line of sortedY) {
-                            // Sort text chunks from left to right
                             let items = line.items.sort((a,b) => a.transform[4] - b.transform[4]);
                             let lineText = items.map(it => it.str.trim()).filter(Boolean).join(' ');
                             extractedLines.push(lineText.replace(/,/g, '.'));
                         }
                     }
                 } else {
-                    // Es Imagen
                     const worker = await Tesseract.createWorker('spa', 1, {
                         logger: m => {
                             if (m.status === 'recognizing text') {
-                                loading.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analizando foto OCR ' + (i + 1) + ' de ' + fileInput.files.length + '... ' + Math.round(m.progress * 100) + '%';
+                                loadingMsg.innerText = 'Analizando foto OCR ' + (i + 1) + ' de ' + fileInput.files.length + '... ' + Math.round(m.progress * 100) + '%';
                             }
                         }
                     });
@@ -159,7 +180,6 @@
                 }
             }
 
-            // Identificar tipo de planilla a partir de cabeceras
             let hasSectors = false;
             let hasTiempoTotal = false;
 
@@ -171,11 +191,9 @@
 
             const resultados = [];
 
-            // Expresión regular robusta para la estructura general cronológica
             for (const line of extractedLines) {
                 if (!line) continue;
                 
-                // Buscar líneas que empiecen con numero de posicion 1-99, "NT" o "EX"
                 if (/^\s*(\d{1,2}|nt|ex)\s+/i.test(line)) {
                     let parts = line.split(/\s+/);
                     if (parts.length >= 4) {
@@ -195,13 +213,11 @@
                         let cursor = parts.length - 1;
 
                         if (hasSectors) {
-                            // Extraer sectores al final de la línea: S3, S2, S1
                             if (cursor >= 2 && /^\d{2}\.\d{3}$/.test(parts[cursor])) rec.sector_3 = parts[cursor--];
                             if (cursor >= 2 && /^\d{2}\.\d{3}$/.test(parts[cursor])) rec.sector_2 = parts[cursor--];
                             if (cursor >= 2 && /^\d{2}\.\d{3}$/.test(parts[cursor])) rec.sector_1 = parts[cursor--];
                         }
 
-                        // Lo que queda en el medio son tiempos, vueltas y diferencias
                         let middleTokens = [];
                         while (cursor >= 2) {
                             let p = parts[cursor];
@@ -222,14 +238,11 @@
                         }
 
                         if (hasSectors && hasTiempoTotal) {
-                            // Serie o Final con sectores. Formato: Vueltas, Total T°, Mejor Tm, Dif, Dif Ant
                             if (middleTokens.length > 0) rec.vueltas = middleTokens[0];
                             if (middleTokens.length > 1) rec.tiempo_total = middleTokens[1];
                             if (middleTokens.length > 2) rec.mejor_tiempo = middleTokens[2];
                             if (middleTokens.length > 3) rec.diferencia = middleTokens[3];
                         } else if (hasSectors && !hasTiempoTotal) {
-                            // Clasificación con sectores. Formato: Mejor Tm, Dif, Dif Ant, Vueltas
-                            // Recordar que vueltas está al final
                             if (middleTokens.length > 0 && /^\d+$/.test(middleTokens[middleTokens.length - 1])) {
                                 rec.vueltas = middleTokens.pop();
                             }
@@ -240,7 +253,6 @@
                                 rec.diferencia = middleTokens[1];
                             }
                         } else if (hasTiempoTotal && !hasSectors) {
-                            // Serie/Final sin Sectores
                             if (middleTokens.length >= 3) {
                                 rec.vueltas = middleTokens[0];
                                 rec.tiempo_total = middleTokens[1];
@@ -250,7 +262,6 @@
                                 }
                             }
                         } else {
-                            // Fallback genérico
                             if (middleTokens.length > 0 && /^\d+$/.test(middleTokens[middleTokens.length - 1])) {
                                 rec.vueltas = middleTokens.pop();
                             }
@@ -258,7 +269,6 @@
                             if (middleTokens.length > 1 && rec.posicion !== '1') rec.diferencia = middleTokens[1];
                         }
 
-                        // Todo lo que quede desde 2 hasta cursor es el nombre del piloto
                         let nameParts = [];
                         for (let i = 2; i <= cursor; i++) {
                             if (!/^[|\[\]]+$/.test(parts[i])) {
@@ -269,7 +279,7 @@
                         
                         if (nameParts.length > 1) {
                             let apellido = nameParts.shift();
-                            nameParts.push(apellido); // Enviar apellido al final "PEREZ JUAN" -> "Juan Perez"
+                            nameParts.push(apellido);
                         }
                         rec.nombre = nameParts.join(' ');
 
@@ -284,7 +294,6 @@
                 throw new Error("No se pudo detectar ninguna fila con formato de resultados. Revisa el documento.");
             }
 
-            // Añadir flags meta de columnas para renderizar en el preview
             resultados.push({ _meta: { hasSectors, hasTiempoTotal } });
 
             document.getElementById('hidden_sesion_id').value = sesionId;
@@ -294,11 +303,11 @@
         } catch (err) {
             console.error(err);
             error.innerText = err.message || "Error al procesar el documento.";
-            error.classList.remove('d-none');
-            loading.classList.add('d-none');
+            error.style.display = 'block';
+            loading.style.display = 'none';
             this.disabled = false;
-            loading.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analizando documento, este proceso puede tardar unos segundos...';
         }
     });
 </script>
 @endpush
+@endsection

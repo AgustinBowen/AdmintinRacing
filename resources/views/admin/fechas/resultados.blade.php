@@ -3,156 +3,150 @@
 @section('title', 'Resultados Completos de ' . $fecha->nombre)
 
 @section('content')
-@include('components.admin.page-header', [
-    'title' => 'Resultados Completos',
-    'subtitle' => 'Fecha: ' . $fecha->nombre . ' - ' . ($fecha->circuito->nombre ?? 'Sin circuito')
-])
+<div class="view-head">
+    <h1>RESULTADOS: {{ strtoupper($fecha->nombre) }} <span class="lap">{{ strtoupper($fecha->circuito->nombre ?? 'SIN CIRCUITO') }}</span></h1>
+</div>
 
-<div class="mb-4">
-    <a href="{{ route('admin.fechas.show', $fecha) }}" class="btn-modern btn-secondary-modern">
-        <i class="fas fa-arrow-left me-2"></i> Volver a la Fecha
+<div class="form-actions" style="justify-content: flex-start; gap: 12px; margin-bottom: 24px;">
+    <a href="{{ route('admin.fechas.show', $fecha) }}" class="btn ghost">
+        <i class="fas fa-arrow-left"></i> Volver a la Fecha
     </a>
-    <a href="{{ route('admin.resultados.index', ['fecha_id' => $fecha->id]) }}" class="btn-modern btn-secondary-modern ms-2">
-        <i class="fas fa-list me-2"></i> Administrar Resultados Indivíduales
+    <a href="{{ route('admin.resultados.index', ['fecha_id' => $fecha->id]) }}" class="btn ghost">
+        <i class="fas fa-list"></i> Administrar Resultados Indivíduales
     </a>
-    <form method="POST" action="{{ route('admin.fechas.generar-acumulados', $fecha) }}" class="d-inline-block">
+    <form method="POST" action="{{ route('admin.fechas.generar-acumulados', $fecha) }}" style="display: inline-block;">
         @csrf
-        <button type="submit" class="btn-modern btn-primary-modern">
-            <i class="fas fa-calculator me-2"></i> Generar Acumulados
+        <button type="submit" class="btn" style="background: var(--white); color: var(--black);">
+            <i class="fas fa-calculator"></i> Generar Acumulados
         </button>
     </form>
 </div>
 
 @empty($fecha->sesiones)
-    <div class="alert alert-info border-0 rounded-4">
-        <i class="fas fa-info-circle me-2"></i> No hay sesiones registradas para esta fecha.
+    <div class="form-card text-center" style="padding: 40px; color: var(--gray);">
+        <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 16px;"></i>
+        <p style="margin: 0;">No hay sesiones registradas para esta fecha.</p>
     </div>
 @else
     @foreach($fecha->sesiones as $sesion)
-    <div class="card-modern mb-5">
-        <div class="card-header-modern d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-uppercase" style="letter-spacing: 0.5px;">
+    <div class="tbl-wrap" style="margin-bottom: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--black); border-bottom: 1px solid var(--carbon);">
+            <h5 style="margin: 0; font-family: var(--font-oswald); font-size: 16px; text-transform: uppercase;">
                 {{ \App\Models\SesionDefinicion::TIPOS[$sesion->tipo] ?? $sesion->tipo }}
             </h5>
-            <div class="d-flex align-items-center gap-2">
+            <div style="display: flex; align-items: center; gap: 12px;">
                 @if(count($sesion->resultados) > 0)
-                <button type="button" 
-                    class="btn-modern btn-destructive-modern" 
-                    style="font-size: 0.75rem; padding: 0.3rem 0.6rem;"
+                <button type="button" class="btn ghost" style="padding: 4px 12px; font-size: 12px; min-width: auto; color: var(--racing); border-color: transparent;"
                     data-bs-toggle="modal" 
                     data-bs-target="#deleteModal"
                     data-delete-url="{{ route('admin.fechas.eliminar-resultados-sesion', $sesion) }}"
                     data-item-name="todos los resultados de {{ \App\Models\SesionDefinicion::TIPOS[$sesion->tipo] ?? $sesion->tipo }}">
-                    <i class="fas fa-trash-alt me-1"></i> Borrar Sesión
+                    <i class="fas fa-trash-alt"></i> Borrar Sesión
                 </button>
                 @endif
-                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">
-                    <i class="fas fa-flag-checkered me-1"></i> {{ count($sesion->resultados) }} Pilotos
+                <span style="font-size: 12px; color: var(--gray); font-family: var(--font-sans);">
+                    <i class="fas fa-flag-checkered" style="margin-right: 4px;"></i> {{ count($sesion->resultados) }} PILOTOS
                 </span>
             </div>
         </div>
         
-        <div class="card-body-modern p-0">
-            @if(count($sesion->resultados) === 0)
-                <div class="p-4 text-center text-muted">Aún no hay resultados cargados para esta sesión.</div>
-            @else
-                <div class="table-responsive">
-                    <table class="table-modern table-modern-hover mb-0">
-                        @if($sesion->tipo === 'acumulados')
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 5%" class="text-center">Pos</th>
-                                <th style="width: 5%" class="text-center">N°</th>
-                                <th style="width: 30%">Nombre</th>
-                                <th style="width: 15%">Clase</th>
-                                <th style="width: 15%" class="text-end">Mejor T° total</th>
-                                <th style="width: 30%">En sesión</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($sesion->resultados as $resultado)
-                            <tr>
-                                <td class="text-center fw-medium">{{ $resultado->posicion }}</td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill">{{ $resultado->piloto->numero_auto_pivot ?? '-' }}</span>
-                                </td>
-                                <td class="fw-medium">{{ $resultado->piloto->nombre }}</td>
-                                <td class="text-muted">{{ $fecha->campeonato->nombre }}</td>
-                                <td class="text-end font-monospace fw-bold">{{ $resultado->mejor_tiempo_formateado }}</td>
-                                <td class="text-muted">{{ $resultado->observaciones }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                        @else
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 5%" class="text-center">Pos</th>
-                                <th style="width: 5%" class="text-center">N°</th>
-                                <th style="width: 25%">Nombre</th>
-                                <th style="width: 5%" class="text-center">Vueltas</th>
-                                <th style="width: 10%" class="text-end">Total T°</th>
-                                <th style="width: 10%" class="text-end">Mejor Tm</th>
-                                <th style="width: 10%" class="text-end">Dif. resp. 1°</th>
-                                <th style="width: 10%" class="text-end">S1 Mejor</th>
-                                <th style="width: 10%" class="text-end">S2 Mejor</th>
-                                <th style="width: 10%" class="text-end">S3 Mejor</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                $clasificados = $sesion->resultados->filter(fn($r) => !$r->excluido && rtrim($r->posicion) !== '');
-                                $noClasificados = $sesion->resultados->filter(fn($r) => $r->excluido || rtrim($r->posicion) === '');
-                            @endphp
+        @if(count($sesion->resultados) === 0)
+            <div style="padding: 32px; text-align: center; color: var(--gray); font-family: var(--font-sans); font-size: 13px;">Aún no hay resultados cargados para esta sesión.</div>
+        @else
+            <table>
+                @if($sesion->tipo === 'acumulados')
+                <thead>
+                    <tr>
+                        <th style="width: 5%; text-align: center;">Pos</th>
+                        <th style="width: 5%; text-align: center;">N°</th>
+                        <th style="width: 30%">Nombre</th>
+                        <th style="width: 15%">Clase</th>
+                        <th style="width: 15%; text-align: right;">Mejor T° total</th>
+                        <th style="width: 30%">En sesión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($sesion->resultados as $resultado)
+                    <tr>
+                        <td style="text-align: center; font-weight: 700; color: var(--bone);">{{ $resultado->posicion }}</td>
+                        <td style="text-align: center; color: var(--gray);">
+                            {{ $resultado->piloto->numero_auto_pivot ?? '-' }}
+                        </td>
+                        <td style="font-weight: 500; color: var(--white);">{{ $resultado->piloto->nombre }}</td>
+                        <td style="color: var(--gray);">{{ $fecha->campeonato->nombre }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--bone);">{{ $resultado->mejor_tiempo_formateado }}</td>
+                        <td style="color: var(--gray); font-size: 12px;">{{ $resultado->observaciones }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                @else
+                <thead>
+                    <tr>
+                        <th style="width: 5%; text-align: center;">Pos</th>
+                        <th style="width: 5%; text-align: center;">N°</th>
+                        <th style="width: 25%">Nombre</th>
+                        <th style="width: 5%; text-align: center;">Vueltas</th>
+                        <th style="width: 10%; text-align: right;">Total T°</th>
+                        <th style="width: 10%; text-align: right;">Mejor Tm</th>
+                        <th style="width: 10%; text-align: right;">Dif. resp. 1°</th>
+                        <th style="width: 10%; text-align: right;">S1 Mejor</th>
+                        <th style="width: 10%; text-align: right;">S2 Mejor</th>
+                        <th style="width: 10%; text-align: right;">S3 Mejor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $clasificados = $sesion->resultados->filter(fn($r) => !$r->excluido && rtrim($r->posicion) !== '');
+                        $noClasificados = $sesion->resultados->filter(fn($r) => $r->excluido || rtrim($r->posicion) === '');
+                    @endphp
 
-                            @foreach($clasificados as $resultado)
-                            <tr>
-                                <td class="text-center fw-medium">{{ $resultado->posicion }}</td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill">{{ $resultado->piloto->numero_auto_pivot ?? '-' }}</span>
-                                </td>
-                                <td class="fw-medium">{{ $resultado->piloto->nombre }}</td>
-                                <td class="text-center">{{ $resultado->vueltas ?? '-' }}</td>
-                                <td class="text-end font-monospace">{{ $resultado->tiempo_total_formateado }}</td>
-                                <td class="text-end font-monospace">{{ $resultado->mejor_tiempo_formateado }}</td>
-                                <td class="text-end font-monospace">{{ $resultado->diferencia_primero_formateada }}</td>
-                                <td class="text-end font-monospace text-muted">{{ $resultado->sector_1_formateado }}</td>
-                                <td class="text-end font-monospace text-muted">{{ $resultado->sector_2_formateado }}</td>
-                                <td class="text-end font-monospace text-muted">{{ $resultado->sector_3_formateado }}</td>
-                            </tr>
-                            @endforeach
+                    @foreach($clasificados as $resultado)
+                    <tr>
+                        <td style="text-align: center; font-weight: 700; color: var(--bone);">{{ $resultado->posicion }}</td>
+                        <td style="text-align: center; color: var(--gray);">
+                            {{ $resultado->piloto->numero_auto_pivot ?? '-' }}
+                        </td>
+                        <td style="font-weight: 500; color: var(--white);">{{ $resultado->piloto->nombre }}</td>
+                        <td style="text-align: center; color: var(--gray);">{{ $resultado->vueltas ?? '-' }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--bone);">{{ $resultado->tiempo_total_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--bone);">{{ $resultado->mejor_tiempo_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--bone);">{{ $resultado->diferencia_primero_formateada }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--gray); font-size: 11px;">{{ $resultado->sector_1_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--gray); font-size: 11px;">{{ $resultado->sector_2_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--gray); font-size: 11px;">{{ $resultado->sector_3_formateado }}</td>
+                    </tr>
+                    @endforeach
 
-                            @if($noClasificados->count() > 0)
-                            <tr>
-                                <td colspan="10" class="bg-light py-2 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">
-                                    No clasificado
-                                </td>
-                            </tr>
-                            @foreach($noClasificados as $resultado)
-                            <tr>
-                                <td class="text-center fw-bold text-danger">
-                                    {{ $resultado->excluido ? 'EX' : 'NT' }}
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill">{{ $resultado->piloto->numero_auto_pivot ?? '-' }}</span>
-                                </td>
-                                <td class="fw-medium text-danger">{{ $resultado->piloto->nombre }}</td>
-                                <td class="text-center">{{ $resultado->vueltas ?? '-' }}</td>
-                                <td class="text-end font-monospace">{{ $resultado->tiempo_total_formateado }}</td>
-                                <td class="text-end font-monospace">{{ $resultado->mejor_tiempo_formateado }}</td>
-                                <td class="text-end font-monospace">{{ $resultado->excluido ? 'EX' : 'NT' }}</td>
-                                <td class="text-end font-monospace text-muted">{{ $resultado->sector_1_formateado }}</td>
-                                <td class="text-end font-monospace text-muted">{{ $resultado->sector_2_formateado }}</td>
-                                <td class="text-end font-monospace text-muted">{{ $resultado->sector_3_formateado }}</td>
-                            </tr>
-                            @endforeach
-                            @endif
+                    @if($noClasificados->count() > 0)
+                    <tr>
+                        <td colspan="10" style="background: #111; color: var(--gray); font-size: 11px; text-transform: uppercase; padding: 6px 16px;">
+                            No clasificado
+                        </td>
+                    </tr>
+                    @foreach($noClasificados as $resultado)
+                    <tr>
+                        <td style="text-align: center; font-weight: 700; color: var(--racing);">
+                            {{ $resultado->excluido ? 'EX' : 'NT' }}
+                        </td>
+                        <td style="text-align: center; color: var(--gray);">
+                            {{ $resultado->piloto->numero_auto_pivot ?? '-' }}
+                        </td>
+                        <td style="font-weight: 500; color: var(--racing);">{{ $resultado->piloto->nombre }}</td>
+                        <td style="text-align: center; color: var(--gray);">{{ $resultado->vueltas ?? '-' }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--bone);">{{ $resultado->tiempo_total_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--bone);">{{ $resultado->mejor_tiempo_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--racing);">{{ $resultado->excluido ? 'EX' : 'NT' }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--gray); font-size: 11px;">{{ $resultado->sector_1_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--gray); font-size: 11px;">{{ $resultado->sector_2_formateado }}</td>
+                        <td style="text-align: right; font-family: var(--font-display); color: var(--gray); font-size: 11px;">{{ $resultado->sector_3_formateado }}</td>
+                    </tr>
+                    @endforeach
+                    @endif
 
-                        </tbody>
-                        @endif
-                    </table>
-                </div>
-            @endif
-        </div>
+                </tbody>
+                @endif
+            </table>
+        @endif
     </div>
     @endforeach
 @endif
@@ -160,18 +154,3 @@
 @include('components.admin.delete-modal')
 
 @endsection
-
-@push('styles')
-<style>
-.table-modern td.font-monospace {
-    font-size: 0.9rem;
-}
-.table-modern thead th {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: hsl(var(--muted-foreground));
-    border-bottom: 2px solid hsl(var(--border) / 0.5);
-}
-</style>
-@endpush

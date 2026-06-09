@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Circuito;
 use Illuminate\Http\Request;
 use App\Traits\HasSearchAndPagination;
+use App\Http\Requests\StoreCircuitoRequest;
+use App\Http\Requests\UpdateCircuitoRequest;
 
 class CircuitoController extends Controller
 {
@@ -53,12 +55,9 @@ class CircuitoController extends Controller
         return view('admin.circuitos.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCircuitoRequest $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'distancia' => 'nullable|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         Circuito::create($validated);
 
@@ -76,12 +75,9 @@ class CircuitoController extends Controller
         return view('admin.circuitos.edit', compact('circuito'));
     }
 
-    public function update(Request $request, Circuito $circuito)
+    public function update(UpdateCircuitoRequest $request, Circuito $circuito)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'distancia' => 'nullable|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         $circuito->update($validated);
 

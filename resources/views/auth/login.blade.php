@@ -1,101 +1,40 @@
 @extends('layouts.guest')
 
 @section('content')
-<div class="auth-header">
-    <h2>Iniciar Sesión</h2>
-    <p>Ingresa tus credenciales para acceder al panel</p>
-</div>
-
-@if(session('error'))
-<div class="alert-error">
-    <i class="fas fa-exclamation-triangle"></i>
-    {{ session('error') }}
-</div>
-@endif
-
-@if($errors->any())
-<div class="alert-error">
-    <i class="fas fa-exclamation-triangle"></i>
-    <div>
-        @foreach($errors->all() as $error)
-        <div>{{ $error }}</div>
-        @endforeach
-    </div>
-</div>
-@endif
-
-<form method="POST" action="{{ route('login') }}">
+<form method="POST" action="{{ route('login') }}" class="login-form" autocomplete="off">
     @csrf
 
-    <div class="form-group">
-        <label for="name" class="form-label">
-            <i class="fas fa-user" style="margin-right: 0.5rem; color: hsl(var(--muted-foreground));"></i>
-            Usuario
-        </label>
-        <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            autofocus
+    <div class="login-field">
+        <label for="name">Usuario</label>
+        <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            placeholder="Ingresá tu usuario" 
             value="{{ old('name') }}"
-            placeholder="verstappen33"
-            class="form-input @error('name') error @enderror">
-        @error('name')
-        <div class="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            {{ $message }}
-        </div>
-        @enderror
+            required 
+            autofocus 
+            autocomplete="username" />
     </div>
 
-    <div class="form-group">
-        <label for="password" class="form-label">
-            <i class="fas fa-lock" style="margin-right: 0.5rem; color: hsl(var(--muted-foreground));"></i>
-            Contraseña
-        </label>
-        <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            placeholder="••••••••"
-            class="form-input @error('password') error @enderror">
-        @error('password')
-        <div class="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            {{ $message }}
-        </div>
-        @enderror
+    <div class="login-field">
+        <label for="password">Contraseña</label>
+        <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Ingresá tu contraseña" 
+            required 
+            autocomplete="current-password" />
     </div>
 
-    <button type="submit" class="btn-primary">
-        <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i>
-        Iniciar Sesión
-    </button>
+    @if($errors->any() || session('error'))
+    <div class="login-error show">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <span>Usuario o contraseña incorrectos</span>
+    </div>
+    @endif
+
+    <button type="submit" class="login-btn">Ingresar &#9654;</button>
 </form>
-
-<style>
-    .error-message {
-        color: hsl(var(--destructive));
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
-        display: flex;
-        align-items: center;
-    }
-
-    .error-message i {
-        margin-right: 0.25rem;
-    }
-
-    .form-input.error {
-        border-color: hsl(var(--destructive));
-        box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
-    }
-
-    .form-input.error:focus {
-        border-color: hsl(var(--destructive));
-        box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
-    }
-</style>
 @endsection

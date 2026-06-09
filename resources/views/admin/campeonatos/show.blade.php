@@ -61,13 +61,6 @@
                     'delete-url' => route('admin.campeonatos.destroy', $campeonato),
                     'item-name' => $campeonato->nombre
                 ]
-            ],
-            [
-                'type' => 'link',
-                'label' => 'Volver a la lista',
-                'route' => route('admin.campeonatos.index'),
-                'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-arrow-left'
             ]
         ]
     ])

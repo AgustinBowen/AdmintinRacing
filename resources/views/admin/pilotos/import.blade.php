@@ -1,85 +1,79 @@
-@extends('layouts.admin')
-
+@extends('layouts.selector')
 @section('title', 'Importar Pilotos')
 
 @section('content')
-@include('components.admin.page-header', [
-    'title' => 'Importar Pilotos desde PDF'
-])
+<section class="screen active" id="pdfUpload" style="display:flex;">
+    <div class="form-top">
+        <a href="{{ route('admin.pilotos.index') }}" class="back-link">&larr; Volver a Pilotos</a>
+        <div class="tag">Paso 1 de 2</div>
+    </div>
+    <div class="pdf-body">
+        <div class="pdf-intro">
+            <h1>Importar Resultados</h1>
+            <p>Subí el archivo PDF con los resultados oficiales. Extraeremos automáticamente los nombres de los pilotos para cargarlos en el sistema.</p>
+        </div>
+        
+        <div class="dropzone" id="dzArea" onclick="document.getElementById('pdf_file').click()">
+            <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+            <div class="dz-title">Hacé clic para subir el PDF</div>
+            <div class="dz-hint">PDF con columnas: Orden, Auto, Piloto</div>
+            <input type="file" id="pdf_file" accept=".pdf" style="display:none;">
+        </div>
 
-<div class="row">
-    <div class="col-md-10">
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <h5 class="mb-0 fw-semibold">Subir Archivo de Resultados</h5>
+        <div class="dz-file" id="dzFile">
+            <div class="filebadge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span id="dzName">resultado.pdf</span>
             </div>
-            <div class="card-body-modern">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="form-field-container">
-                            <label class="form-label fw-medium mb-2" style="color: hsl(var(--foreground)); font-size: 0.875rem;">
-                                Asignar a Campeonato (Opcional)
-                            </label>
-                            <select id="campeonato_id" class="input-modern">
-                                <option value="">Seleccionar...</option>
-                                @foreach($campeonatos as $campeonato)
-                                    <option value="{{ $campeonato->id }}">{{ $campeonato->nombre }}</option>
-                                @endforeach
-                            </select>
-                            <small class="form-help">Si seleccionas un campeonato, a los pilotos importados se les asignará el número de auto automáticamente correspondiente al "Orden" en el que terminaron.</small>
-                        </div>
-                    </div>
+            <button class="btn sm ghost" onclick="resetFile(event)">Quitar</button>
+        </div>
+        
+        <div id="loadingStatus" class="mt-3 text-center d-none" style="margin-top:20px; color:var(--gray);">
+            <i class="fas fa-spinner fa-spin me-2"></i> Analizando el documento PDF, por favor espera...
+        </div>
+        
+        <div id="errorStatus" class="mt-3 text-center d-none" style="margin-top:20px; color:var(--racing);">
+        </div>
 
-                    <div class="col-12">
-                        <div class="form-field-container">
-                            <label class="form-label fw-medium mb-2" style="color: hsl(var(--foreground)); font-size: 0.875rem;">
-                                Archivo PDF *
-                            </label>
-                            <input type="file" id="pdf_file" accept=".pdf" class="input-modern" required>
-                            <small class="form-help">Sube el archivo PDF que contenga las columnas Orden, Auto, Piloto.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-actions mt-4 pt-3 border-top">
-                    <button type="button" id="btnProcesarPdf" class="btn-modern btn-primary-modern">
-                        <i class="fas fa-search me-2"></i> Detectar Pilotos
-                    </button>
-                    <a href="{{ route('admin.pilotos.index') }}" class="btn-modern btn-secondary-modern">
-                        Cancelar
-                    </a>
-                </div>
-                
-                <div id="loadingStatus" class="mt-3 text-primary d-none">
-                    <i class="fas fa-spinner fa-spin me-2"></i> Analizando el documento PDF, por favor espera...
-                </div>
-                
-                <div id="errorStatus" class="mt-3 text-danger d-none">
-                </div>
-            </div>
+        <div class="pdf-actions">
+            <button type="button" id="btnProcesarPdf" class="btn" style="opacity:0.5; pointer-events:none;">Siguiente Paso &#9656;</button>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Formulario Oculto para enviar el resultado a Preview -->
 <form id="previewForm" action="{{ route('admin.pilotos.import.preview') }}" method="POST" class="d-none">
     @csrf
-    <input type="hidden" name="campeonato_id" id="hidden_campeonato_id">
-    <textarea name="pilotos_json" id="hidden_pilotos_json"></textarea>
+    <textarea name="pilotos_json" id="hidden_pilotos_json" style="display:none;"></textarea>
 </form>
 
-@endsection
-
-@push('scripts')
-<!-- Cargar libreria Pdf.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-    // Inicializar worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    document.getElementById('pdf_file').addEventListener('change', function(e) {
+        if(this.files && this.files.length > 0) {
+            document.getElementById('dzArea').style.display = 'none';
+            document.getElementById('dzFile').classList.add('show');
+            document.getElementById('dzName').textContent = this.files[0].name;
+            const btn = document.getElementById('btnProcesarPdf');
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        }
+    });
+
+    function resetFile(e) {
+        e.stopPropagation();
+        document.getElementById('pdf_file').value = '';
+        document.getElementById('dzFile').classList.remove('show');
+        document.getElementById('dzArea').style.display = 'block';
+        const btn = document.getElementById('btnProcesarPdf');
+        btn.style.opacity = '0.5';
+        btn.style.pointerEvents = 'none';
+    }
 
     document.getElementById('btnProcesarPdf').addEventListener('click', async function() {
         const fileInput = document.getElementById('pdf_file');
-        const campeonatoId = document.getElementById('campeonato_id').value;
         const loading = document.getElementById('loadingStatus');
         const error = document.getElementById('errorStatus');
         
@@ -111,18 +105,11 @@
                     const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
                     let fullText = "";
                     
-                    // Extraer texto de todas las paginas
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
                         const textContent = await page.getTextContent();
                         
-                        // Reconstruir lineas agrupando items que estan a la misma altura (transform Y)
                         let textItems = textContent.items;
-                        
-                        // Si es muy complejo el PDF a nivel visual, se puede simplemente agrupar por transform[5] (el eje Y)
-                        // Para simplificar concatenamos todo asumiendo flujo estandar y procesando luego.
-                        // pdf.js trae saltos de linea? normalmente no, asi que formamos lineas:
-                        
                         let lastY, text = '';
                         for (let item of textItems) {
                             if (lastY == item.transform[5] || !lastY){
@@ -143,25 +130,17 @@
                         const line = rawLine.trim();
                         if (!line) continue;
                         
-                        // Buscar patron: numero auto nombre
-                        // Usamos [^0-9]+? para atrapar todo el texto hasta que encontremos un número (columna de puntos)
                         const match = line.match(/^\s*(\d+)\s+(\d+)\s+([^0-9]+?)(?=\s+\d|$)/);
                         
                         if (match) {
                             const orden = match[1].trim();
                             const auto = match[2].trim();
                             
-                            // Limpiar multiples espacios
                             let pilotoRaw = match[3].replace(/\s+/g, ' ').trim().toLowerCase();
                             
-                            // Formato Title Case (primera letra en mayuscula)
                             let words = pilotoRaw.split(' ');
                             words = words.map(w => w.charAt(0).toUpperCase() + w.slice(1));
                             
-                            // Invertir el Apellido y Nombre (asumimos que la primera palabra o dos primeras es apellido)
-                            // Si son 2 palabras: "Jones", "Martin" -> "Martin Jones"
-                            // Si son más: movemos la primera al final: "Perez", "Juan", "Carlos" -> "Juan Carlos Perez"
-                            // Para mayor precision solo movemos la primera palabra.
                             if (words.length > 1) {
                                 let apellido = words.shift();
                                 words.push(apellido);
@@ -181,17 +160,15 @@
                     }
 
                     if (pilotosDetectados.length === 0) {
-                        throw new Error("No se detectaron pilotos con el formato esperado (Orden - Auto - Piloto). Asegúrate de que las columnas están completas.");
+                        throw new Error("No se detectaron pilotos con el formato esperado (Orden - Auto - Piloto).");
                     }
 
-                    // Enviar al Backend
-                    document.getElementById('hidden_campeonato_id').value = campeonatoId;
                     document.getElementById('hidden_pilotos_json').value = JSON.stringify(pilotosDetectados);
                     document.getElementById('previewForm').submit();
 
                 } catch (err) {
                     console.error(err);
-                    error.innerText = "No se pudo leer el contenido del PDF. Es posible que esté dañado o encriptado excesivamente.";
+                    error.innerText = "No se pudo leer el contenido del PDF o " + err.message;
                     error.classList.remove('d-none');
                     loading.classList.add('d-none');
                     document.getElementById('btnProcesarPdf').disabled = false;
@@ -209,4 +186,4 @@
         }
     });
 </script>
-@endpush
+@endsection

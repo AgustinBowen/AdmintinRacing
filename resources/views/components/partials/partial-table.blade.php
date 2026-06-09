@@ -1,12 +1,12 @@
-<div class="table-responsive">
-    <table class="table-modern">
+<div class="tbl-wrap">
+    <table>
         <thead>
             <tr>
                 @foreach($columns as $column)
                     <th>{{ $column['label'] }}</th>
                 @endforeach
                 @if($showActions ?? true)
-                    <th width="150" class="text-center">Acciones</th>
+                    <th>Acciones</th>
                 @endif
             </tr>
         </thead>
@@ -17,18 +17,7 @@
                         <td>
                             @switch($column['type'] ?? 'text')
                                 @case('badge')
-                                    @php
-                                        $badgeClass = match($column['color'] ?? 'primary') {
-                                            'success' => 'badge-success',
-                                            'danger' => 'badge-destructive',
-                                            'warning' => 'badge-warning',
-                                            'secondary' => 'badge-secondary',
-                                            default => 'badge-primary'
-                                        };
-                                    @endphp
-                                    <span class="badge-modern {{ $badgeClass }}">
-                                        {{ data_get($item, $column['field']) }}
-                                    </span>
+                                    <span class="badge">{{ data_get($item, $column['field']) }}</span>
                                     @break
 
                                 @case('date')
@@ -36,13 +25,13 @@
                                         $rawDate = data_get($item, $column['field']);
                                         $date = $rawDate ? \Illuminate\Support\Carbon::parse($rawDate) : null;
                                     @endphp
-                                    <span style="color: hsl(var(--primary));">
+                                    <span style="color: var(--white);">
                                         {{ $date ? $date->format($column['format'] ?? 'd/m/Y') : '—' }}
                                     </span>
                                     @break
 
                                 @case('boolean')
-                                    <span class="badge-modern {{ data_get($item, $column['field']) ? 'badge-success' : 'badge-destructive' }}">
+                                    <span class="badge">
                                         {{ data_get($item, $column['field']) ? 'Sí' : 'No' }}
                                     </span>
                                     @break
@@ -55,47 +44,33 @@
 
                     @if($showActions ?? true)
                         <td>
-                            <div class="d-flex justify-content-center gap-1">
+                            <div class="row-actions">
                                 @if(isset($rowActions))
                                     @foreach($rowActions as $action)
-                                        <a href="{{ route($action['route'], $item) }}"
-                                           class="btn-modern {{ $action['class'] ?? 'btn-secondary-modern' }} p-2 text-white"
-                                           style="width: 32px; height: 32px;"
-                                           title="{{ $action['title'] ?? '' }}">
-                                            <i class="{{ $action['icon'] ?? 'fas fa-link' }}" style="font-size: 0.75rem;"></i>
+                                        <a href="{{ route($action['route'], $item) }}" class="icon-btn" title="{{ $action['title'] ?? '' }}">
+                                            <i class="{{ $action['icon'] ?? 'fas fa-link' }}"></i>
                                         </a>
                                     @endforeach
                                 @endif
 
                                 @if($showView ?? true)
-                                    <a href="{{ route($routePrefix . '.show', $item) }}"
-                                       class="btn-modern btn-secondary-modern p-2"
-                                       style="width: 32px; height: 32px;"
-                                       title="Ver">
-                                        <i class="fas fa-eye" style="font-size: 0.75rem;"></i>
+                                    <a href="{{ route($routePrefix . '.show', $item) }}" class="icon-btn" title="Ver">
+                                        Ver
                                     </a>
                                 @endif
 
                                 @if($showEdit ?? true)
-                                    <a href="{{ route($routePrefix . '.edit', $item) }}"
-                                       class="btn-modern btn-secondary-modern p-2"
-                                       style="width: 32px; height: 32px;"
-                                       title="Editar">
-                                        <i class="fas fa-edit" style="font-size: 0.75rem;"></i>
+                                    <a href="{{ route($routePrefix . '.edit', $item) }}" class="icon-btn" title="Editar">
+                                        Editar
                                     </a>
                                 @endif
 
                                 @if($showDelete ?? true)
-                                    <button type="button"
-                                            class="btn-modern btn-destructive-modern p-2"
-                                            style="width: 32px; height: 32px;"
-                                            title="Eliminar"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#{{ $deleteModalId ?? 'deleteModal' }}"
-                                            data-delete-url="{{ route($routePrefix . '.destroy', $item) }}"
-                                            data-item-name="{{ data_get($item, $nameField ?? 'name') ?? 'este elemento' }}">
-                                        <i class="fas fa-trash" style="font-size: 0.75rem;"></i>
-                                    </button>
+                                    <form method="POST" action="{{ route($routePrefix . '.destroy', $item) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="icon-btn del" title="Eliminar">Borrar</button>
+                                    </form>
                                 @endif
                             </div>
                         </td>
@@ -106,7 +81,7 @@
     </table>
 
     @if(method_exists($items, 'links'))
-        <div class="px-4 py-3">
+        <div style="padding:14px;">
             {{ $items->links() }}
         </div>
     @endif

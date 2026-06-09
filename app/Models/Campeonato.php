@@ -9,8 +9,13 @@ class Campeonato extends Model
 {
     use HasUuids;
     
-    protected $fillable = ['nombre', 'anio'];
+    protected $fillable = ['nombre', 'anio', 'categoria_id'];
     public $timestamps = false;
+    
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class);
+    }
     
     public function fechas()
     {

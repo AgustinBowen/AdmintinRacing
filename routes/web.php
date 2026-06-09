@@ -10,8 +10,10 @@ use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\SesionDefinicionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ResultadoSesionController;
+use App\Http\Controllers\CategoriaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CheckCampeonatoSeleccionado;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -19,13 +21,21 @@ Route::post('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/', function () {
-    return redirect()->route('admin.dashboard');
+    return redirect()->route('admin.categorias.index');
 })->middleware('auth');
 
 // Rutas del panel de administración
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
 
-    // Dashboard del administrador
+    // Gestión de Categorías
+    Route::resource('categorias', CategoriaController::class);
+    Route::get('categorias/{categoria}/campeonatos/{campeonato}/seleccionar', [CategoriaController::class, 'seleccionarCampeonato'])->name('categorias.campeonatos.seleccionar');
+    Route::get('categorias/{categoria}/campeonatos/create', [CategoriaController::class, 'createCampeonato'])->name('categorias.campeonatos.create');
+    Route::post('categorias/{categoria}/campeonatos', [CategoriaController::class, 'storeCampeonato'])->name('categorias.campeonatos.store');
+
+    // Rutas que requieren un campeonato seleccionado
+    Route::middleware([CheckCampeonatoSeleccionado::class])->group(function () {
+        // Dashboard del administrador
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Gestión de Campeonatos
@@ -90,4 +100,5 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::get('campeonatos/{campeonato}/pilotos', [CampeonatoController::class, 'managePilotos'])->name('campeonatos.pilotos');
     Route::post('campeonatos/{campeonato}/pilotos', [CampeonatoController::class, 'attachPiloto'])->name('campeonatos.pilotos.attach');
     Route::delete('campeonatos/{campeonato}/pilotos/{piloto}', [CampeonatoController::class, 'detachPiloto'])->name('campeonatos.pilotos.detach');
+    });
 });

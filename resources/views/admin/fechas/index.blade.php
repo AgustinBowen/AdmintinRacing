@@ -22,7 +22,7 @@
             'route' => 'admin.fechas.resultados',
             'title' => 'Ver Resultados',
             'icon'  => 'fas fa-list-ol',
-            'class' => 'btn-modern btn-primary-modern'
+            'class' => 'ghost'
         ]
     ],
     'columns' => [

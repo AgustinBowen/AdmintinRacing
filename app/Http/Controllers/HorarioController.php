@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\Traits\HasSearchAndPagination;
+use App\Http\Requests\StoreHorarioRequest;
+use App\Http\Requests\UpdateHorarioRequest;
+use App\Http\Requests\UpdateHorarioFromFechaRequest;
 
 class HorarioController extends Controller
 {
@@ -21,7 +24,9 @@ class HorarioController extends Controller
         $this->setupPagination();
 
         // Crear consulta base
-        $query = Horario::query();
+        $query = Horario::query()->whereHas('fecha', function($q) {
+            $q->where('campeonato_id', session('campeonato_id'));
+        });
 
         // Aplicar búsqueda
         $searchFields = ['fecha.nombre', 'sesion.tipo']; // Campos en los que buscar
@@ -60,7 +65,8 @@ class HorarioController extends Controller
                 'type' => 'select',
                 'field' => 'fecha_id', // Use the foreign key column directly
                 'placeholder' => 'Todas las fechas',
-                'options' => Fecha::distinct()
+                'options' => Fecha::where('campeonato_id', session('campeonato_id'))
+                    ->distinct()
                     ->orderBy('nombre', 'desc')
                     ->pluck('nombre', 'id')
                     ->toArray()
@@ -92,7 +98,7 @@ class HorarioController extends Controller
      */
     public function create()
     {
-        $fechas = Fecha::all();
+        $fechas = Fecha::where('campeonato_id', session('campeonato_id'))->get();
         $sesiones = SesionDefinicion::all();
 
         return view('admin.horarios.create', compact('fechas', 'sesiones'));
@@ -101,24 +107,9 @@ class HorarioController extends Controller
     /**
      * Store a newly created schedule in storage.
      */
-    public function store(Request $request)
+    public function store(StoreHorarioRequest $request)
     {
-        $validated = $request->validate([
-            'fecha_id' => 'required|uuid|exists:fechas,id',
-            'sesion_id' => [
-                'required',
-                'uuid',
-                'exists:sesiones_definicion,id',
-                function ($attribute, $value, $fail) {
-                    if (Horario::existePorSesion($value)) {
-                        $fail('Ya existe un horario para esta sesión.');
-                    }
-                },
-            ],
-            'horario' => 'required|date_format:H:i',
-            'duracion' => 'required|string|max:255',
-            'observaciones' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         try {
             $fecha = Fecha::findOrFail($validated['fecha_id']);
@@ -150,7 +141,7 @@ class HorarioController extends Controller
      */
     public function edit(Horario $horario)
     {
-        $fechas = Fecha::all();
+        $fechas = Fecha::where('campeonato_id', session('campeonato_id'))->get();
         $sesiones = SesionDefinicion::all();
 
         return view('admin.horarios.edit', compact('horario', 'fechas', 'sesiones'));
@@ -159,25 +150,9 @@ class HorarioController extends Controller
     /**
      * Update the specified schedule in storage.
      */
-    public function update(Request $request, Horario $horario)
+    public function update(UpdateHorarioRequest $request, Horario $horario)
     {
-        $validated = $request->validate([
-            'fecha_id' => 'required|uuid|exists:fechas,id',
-            'sesion_id' => [
-                'required',
-                'uuid',
-                'exists:sesiones_definicion,id',
-                function ($attribute, $value, $fail) use ($horario) {
-                    // Check if another schedule (different from the current one) exists for this session
-                    if (Horario::where('sesion_id', $value)->where('id', '!=', $horario->id)->exists()) {
-                        $fail('Ya existe un horario para esta sesión.');
-                    }
-                },
-            ],
-            'horario' => 'required|date_format:H:i',
-            'duracion' => 'required|string|max:255',
-            'observaciones' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
         try {
             $fecha = Fecha::findOrFail($validated['fecha_id']);
             $fechaBase = Carbon::parse($fecha->fecha_desde)->format('Y-m-d');
@@ -200,14 +175,9 @@ class HorarioController extends Controller
     /**
      * Quick update of horario from the Fecha show page (fecha_sesion + hora + duracion)
      */
-    public function updateFromFecha(Request $request, Horario $horario)
+    public function updateFromFecha(UpdateHorarioFromFechaRequest $request, Horario $horario)
     {
-        $validated = $request->validate([
-            'fecha_sesion'  => 'required|date',
-            'horario'       => 'required|date_format:H:i',
-            'duracion'      => 'nullable|string|max:255',
-            'observaciones' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         try {
             $fechaSesion = $validated['fecha_sesion'];

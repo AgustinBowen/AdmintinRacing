@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.form')
 @section('title', 'Crear Piloto')
 
 @section('content')
@@ -27,17 +27,6 @@
                     'type' => 'text',
                     'placeholder' => 'Ej: Argentina',
                     'width' => 4
-                ],
-                [
-                    'name' => 'campeonato_id',
-                    'label' => 'Asignar a Campeonato (Opcional)',
-                    'type' => 'select',
-                    'options' => $campeonatos,
-                    'optionValue' => 'id',
-                    'optionLabel' => 'nombre',
-                    'value' => $campeonatoId,
-                    'required' => false,
-                    'width' => 8
                 ],
                 [
                     'name' => 'numero_auto',

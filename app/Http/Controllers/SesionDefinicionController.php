@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use App\Traits\HasSearchAndPagination;
+use App\Http\Requests\StoreSesionDefinicionRequest;
+use App\Http\Requests\UpdateSesionDefinicionRequest;
 
 class SesionDefinicionController extends Controller
 {
@@ -21,7 +23,9 @@ class SesionDefinicionController extends Controller
         $this->setupPagination();
 
         // Crear consulta base
-        $query = SesionDefinicion::query();
+        $query = SesionDefinicion::query()->whereHas('fecha', function($q) {
+            $q->where('campeonato_id', session('campeonato_id'));
+        });
 
         // Aplicar búsqueda
         $searchFields = ['fecha.nombre']; // Campos en los que buscar
@@ -49,7 +53,8 @@ class SesionDefinicionController extends Controller
                 'placeholder' => 'Todas las fechas',
                 'options' => function () {
                     // Obtener las fechas que realmente tienen sesiones definidas
-                    return Fecha::whereHas('sesiones') // Asumiendo que tienes esta relación
+                    return Fecha::where('campeonato_id', session('campeonato_id'))
+                        ->whereHas('sesiones') // Asumiendo que tienes esta relación
                         ->orderBy('nombre')
                         ->pluck('nombre', 'nombre') // Usar nombre como key y value
                         ->toArray();
@@ -101,7 +106,7 @@ class SesionDefinicionController extends Controller
      */
     public function create()
     {
-        $fechas = Fecha::orderBy('nombre')->get();
+        $fechas = Fecha::where('campeonato_id', session('campeonato_id'))->orderBy('nombre')->get();
         $tipos = [];
         foreach (SesionDefinicion::TIPOS as $value => $label) {
             $tipos[] = ['value' => $value, 'label' => $label];
@@ -113,21 +118,9 @@ class SesionDefinicionController extends Controller
     /**
      * Store a newly created session in storage.
      */
-    public function store(Request $request)
+    public function store(StoreSesionDefinicionRequest $request)
     {
-        $validated = $request->validate([
-            'fecha_id' => 'required|exists:fechas,id',
-            'fecha_sesion' => 'required|date',
-            'tipo' => [
-                'required',
-                'in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
-                Rule::unique('sesiones_definicion')->where(function ($query) use ($request) {
-                    return $query->where('fecha_id', $request->fecha_id);
-                }),
-            ],
-        ], [
-            'tipo.unique' => 'Ya existe una sesión de este tipo para la fecha seleccionada.'
-        ]);
+        $validated = $request->validated();
 
         SesionDefinicion::create($validated);
 
@@ -149,7 +142,7 @@ class SesionDefinicionController extends Controller
      */
     public function edit(SesionDefinicion $sesion)
     {
-        $fechas = Fecha::orderBy('nombre')->get();
+        $fechas = Fecha::where('campeonato_id', session('campeonato_id'))->orderBy('nombre')->get();
         $tipos = [];
         foreach (SesionDefinicion::TIPOS as $value => $label) {
             $tipos[] = ['value' => $value, 'label' => $label];
@@ -161,21 +154,9 @@ class SesionDefinicionController extends Controller
     /**
      * Update the specified session in storage.
      */
-    public function update(Request $request, SesionDefinicion $sesion)
+    public function update(UpdateSesionDefinicionRequest $request, SesionDefinicion $sesion)
     {
-        $validated = $request->validate([
-            'fecha_id' => 'required|exists:fechas,id',
-            'fecha_sesion' => 'required|date',
-            'tipo' => [
-                'required',
-                'in:' . implode(',', array_keys(SesionDefinicion::TIPOS)),
-                Rule::unique('sesiones_definicion')->where(function ($query) use ($request) {
-                    return $query->where('fecha_id', $request->fecha_id);
-                })->ignore($sesion->id),
-            ],
-        ], [
-            'tipo.unique' => 'Ya existe una sesión de este tipo para la fecha seleccionada.'
-        ]);
+        $validated = $request->validated();
 
         $sesion->update($validated);
 

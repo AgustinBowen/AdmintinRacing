@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AdminTin — Sistema de Gestión de Campeonatos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     TOKENS — Paleta blanco y negro
+  ============================================================ */
+  :root{
+    --black:#0A0A0A;
+    --black-2:#0E0E0E;
+    --carbon:#1E1E1E;
+    --carbon-2:#141414;
+    --row:#181818;
+    --line:#262626;
+    --accent:#FFFFFF;
+    --white:#FFFFFF;
+    --bone:#EDEDED;
+    --gray:#9A9A9A;
+    --gray-dim:#5A5A5A;
+
+    /* acento racing (rojo de carreras tipo F1) */
+    --racing:#E10600;
+    --racing-2:#FF1E14;
+    --racing-dim:rgba(225,6,0,.16);
+
+    /* podio */
+    --gold:#E8B53A;
+    --silver:#C9CDD2;
+    --bronze:#C77B3B;
+
+    --font-display:'Oswald', sans-serif;   /* títulos condensados, sencillos */
+    --font-sans:'Inter', sans-serif;       /* todo el resto */
+  }
+
+  /* patrón reutilizable de fibra de carbono */
+  .carbon-fiber{
+    background-color:var(--carbon-2);
+    background-image:
+      linear-gradient(27deg,rgba(255,255,255,.025) 1px,transparent 1px),
+      linear-gradient(-27deg,rgba(255,255,255,.025) 1px,transparent 1px),
+      linear-gradient(27deg,rgba(0,0,0,.5) 1px,transparent 1px),
+      linear-gradient(-27deg,rgba(0,0,0,.5) 1px,transparent 1px);
+    background-size:8px 8px;
+    background-position:0 0,4px 0,4px 4px,0 4px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--black);
+    color:var(--white);
+    font-family:var(--font-sans);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* textura sutil de fondo + acento racing tenue */
+  .bg-texture{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-color:var(--black);
+    background-image:
+      radial-gradient(circle at 50% -10%, rgba(255,255,255,.05), transparent 55%),
+      radial-gradient(circle at 100% 0%, var(--racing-dim), transparent 42%),
+      repeating-linear-gradient(115deg, transparent 0 38px, rgba(255,255,255,.012) 38px 39px);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-track{background:var(--black);}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--gray-dim);}
+
+  /* ============================================================
+     SCREEN SYSTEM
+  ============================================================ */
+  .screen{
+    position:fixed;inset:0;z-index:10;
+    display:none;opacity:0;
+  }
+  .screen.active{display:block;opacity:1;}
+
+  .fade-out{animation:fadeOut .35s ease forwards;}
+  @keyframes fadeOut{to{opacity:0;transform:translateY(-8px);}}
+  .fade-in{animation:fadeIn .4s ease forwards;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ============================================================
+     SCREEN 0 — LOGIN
+  ============================================================ */
+  #login{background:var(--black);align-items:center;justify-content:center;}
+  #login.active{display:flex;}
+  .login-wrap{position:relative;width:min(420px,100%);padding:0 24px;text-align:center;}
+  .login-brand{
+    font-family:var(--font-display);font-weight:700;
+    font-size:clamp(40px,8vw,64px);letter-spacing:.02em;line-height:.9;
+    text-transform:uppercase;color:var(--white);
+    opacity:0;transform:translateY(18px);animation:loginIn .7s cubic-bezier(.16,1,.3,1) .05s forwards;
+  }
+  .login-brand span{color:var(--gray);}
+  .login-sub{
+    margin-top:12px;font-family:var(--font-sans);font-weight:500;text-transform:uppercase;
+    letter-spacing:.34em;font-size:11px;color:var(--gray);padding-left:.34em;
+    opacity:0;transform:translateY(16px);animation:loginIn .7s ease-out .18s forwards;
+  }
+  .login-strip{margin:26px 0 30px;opacity:0;animation:loginIn .6s ease-out .28s forwards;}
+  .login-form{
+    display:flex;flex-direction:column;gap:16px;text-align:left;
+    opacity:0;transform:translateY(16px);animation:loginIn .7s ease-out .36s forwards;
+  }
+  .login-field label{
+    display:block;font-family:var(--font-sans);font-weight:600;text-transform:uppercase;
+    letter-spacing:.14em;font-size:11px;color:var(--gray);margin-bottom:8px;
+  }
+  .login-field input{
+    width:100%;background:var(--carbon-2);border:1px solid var(--line);color:var(--white);
+    font-family:var(--font-sans);font-size:15px;padding:13px 14px;outline:none;transition:.2s;border-radius:0;
+  }
+  .login-field input:focus{border-color:var(--white);}
+  .login-field input::placeholder{color:var(--gray-dim);}
+  .login-error{
+    font-family:var(--font-sans);font-size:12px;color:var(--white);letter-spacing:.04em;
+    border-left:2px solid var(--white);background:var(--carbon);padding:9px 12px;
+    display:none;align-items:center;gap:8px;
+  }
+  .login-error.show{display:flex;}
+  .login-btn{
+    margin-top:6px;font-family:var(--font-sans);font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+    font-size:14px;padding:14px 18px;border:1px solid var(--white);background:var(--white);color:var(--black);
+    cursor:pointer;border-radius:0;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  }
+  .login-btn:hover{background:var(--bone);border-color:var(--bone);}
+  .login-foot{
+    margin-top:24px;font-family:var(--font-sans);font-size:10px;letter-spacing:2.5px;
+    text-transform:uppercase;color:var(--gray-dim);
+    opacity:0;animation:loginIn .6s ease-out .5s forwards;
+  }
+  @keyframes loginIn{to{opacity:1;transform:translateY(0);}}
+
+  /* ============================================================
+     SEARCH BOX (categorías / temporadas)
+  ============================================================ */
+  .search-box{position:relative;display:flex;align-items:center;}
+  .search-box svg{position:absolute;left:14px;width:17px;height:17px;color:var(--gray-dim);pointer-events:none;}
+  .search-box input{
+    width:100%;background:var(--carbon-2);border:1px solid var(--line);color:var(--white);
+    font-family:var(--font-sans);font-size:14px;padding:11px 14px 11px 40px;outline:none;transition:.2s;border-radius:0;
+  }
+  .search-box input:focus{border-color:var(--white);}
+  .search-box input::placeholder{color:var(--gray-dim);}
+  .cat-search,.yr-search{width:min(320px,46vw);}
+  .empty-hint{
+    font-family:var(--font-sans);font-size:13px;color:var(--gray-dim);
+    padding:48px 5vw;text-align:center;text-transform:uppercase;letter-spacing:.16em;
+  }
+
+  /* ============================================================
+     SCREEN 1 — INTRO
+  ============================================================ */
+  #intro{background:var(--black);align-items:center;justify-content:center;flex-direction:column;}
+  #intro.active{display:flex;}
+  .intro-core{position:relative;text-align:center;}
+  .intro-title{
+    font-family:var(--font-display);font-weight:700;
+    font-size:clamp(48px,11vw,140px);letter-spacing:.02em;
+    color:var(--white);line-height:.9;text-transform:uppercase;
+    opacity:0;transform:translateY(24px);
+    animation:titleIn 1s cubic-bezier(.16,1,.3,1) .2s forwards;
+  }
+  .intro-title .tin{color:var(--gray);}
+  @keyframes titleIn{to{opacity:1;transform:translateY(0);}}
+  .intro-sub{
+    margin-top:14px;font-family:var(--font-sans);font-weight:500;
+    text-transform:uppercase;letter-spacing:.42em;font-size:clamp(10px,1.5vw,15px);
+    color:var(--gray);padding-left:.42em;
+    opacity:0;transform:translateY(20px);
+    animation:subIn .7s ease-out .9s forwards;
+  }
+  @keyframes subIn{to{opacity:1;transform:translateY(0);}}
+  .intro-progress{
+    position:absolute;bottom:-90px;left:50%;transform:translateX(-50%);
+    font-family:var(--font-sans);font-size:11px;color:var(--gray-dim);letter-spacing:3px;
+    text-transform:uppercase;text-align:center;
+    opacity:0;animation:subIn .6s ease-out 1.4s forwards;
+  }
+  .intro-bar{width:200px;height:2px;background:var(--carbon);margin-top:10px;overflow:hidden;}
+  .intro-bar i{display:block;height:100%;width:0;background:var(--white);animation:load 1.6s ease-out 1.4s forwards;}
+  @keyframes load{to{width:100%;}}
+
+  /* ---- detalle racing: bandera a cuadros que se desliza tras la intro ---- */
+  .checker-bg{
+    position:absolute;inset:-20% -10%;z-index:-1;pointer-events:none;opacity:.05;
+    background-image:
+      linear-gradient(45deg,#fff 25%,transparent 25%,transparent 75%,#fff 75%,#fff),
+      linear-gradient(45deg,#fff 25%,transparent 25%,transparent 75%,#fff 75%,#fff);
+    background-size:34px 34px;background-position:0 0,17px 17px;
+    -webkit-mask-image:radial-gradient(circle at 50% 45%,#000,transparent 62%);
+    mask-image:radial-gradient(circle at 50% 45%,#000,transparent 62%);
+    animation:checkerPan 14s linear infinite;
+  }
+  @keyframes checkerPan{to{background-position:340px 0,357px 17px;}}
+
+  /* ---- semáforo de largada (start lights) ---- */
+  .grid-lights{
+    display:flex;gap:10px;justify-content:center;margin-top:30px;
+    opacity:0;animation:subIn .5s ease-out 1.1s forwards;
+  }
+  .grid-lights span{
+    width:13px;height:13px;border-radius:50%;
+    background:var(--carbon);border:1px solid var(--line);
+    box-shadow:inset 0 0 0 2px var(--black);
+  }
+  .grid-lights span.on{
+    background:var(--white);border-color:var(--white);
+    box-shadow:0 0 10px rgba(255,255,255,.55),inset 0 0 0 2px var(--black);
+  }
+
+  /* ---- franja a cuadros decorativa (reutilizable) ---- */
+  .checker-strip{
+    height:10px;width:100%;
+    background-image:
+      linear-gradient(45deg,var(--white) 25%,transparent 25%,transparent 75%,var(--white) 75%,var(--white)),
+      linear-gradient(45deg,var(--white) 25%,transparent 25%,transparent 75%,var(--white) 75%,var(--white));
+    background-size:10px 10px;background-position:0 0,5px 5px;
+    opacity:.9;
+  }
+  .checker-strip.dim{opacity:.18;background-size:8px 8px;}
+  .checker-strip.scroll{animation:stripScroll 1.6s linear infinite;}
+  @keyframes stripScroll{to{background-position:20px 0,25px 5px;}}
+
+  /* ---- líneas de velocidad al pasar el mouse por las bandas ---- */
+  .band .speed{
+    position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--white);
+    transform:scaleY(0);transform-origin:bottom;transition:transform .25s ease;
+  }
+  .band:hover .speed{transform:scaleY(1);}
+
+  /* ============================================================
+     SCREEN 2 — CATEGORY SELECTOR
+  ============================================================ */
+  #categories{flex-direction:column;}
+  #categories.active{display:flex;}
+  .cat-head{
+    padding:30px 5vw 16px;display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:1px solid var(--line);
+  }
+  .cat-head .kicker{font-family:var(--font-sans);font-size:12px;color:var(--gray);letter-spacing:.35em;text-transform:uppercase;margin-bottom:10px;}
+  .cat-head h2{
+    font-family:var(--font-display);font-weight:700;font-size:clamp(32px,5vw,60px);letter-spacing:.01em;
+    color:var(--white);text-transform:uppercase;line-height:.95;
+  }
+  .cat-head .step{font-family:var(--font-sans);font-size:12px;color:var(--gray-dim);letter-spacing:2px;text-transform:uppercase;}
+  /* contenedor común derecho de las cabeceras (meta arriba + buscador) */
+  .head-right{display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
+  .cat-list{flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden;}
+  .band{
+    position:relative;display:flex;align-items:center;
+    padding:0 5vw;height:14.5%;cursor:pointer;overflow:hidden;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    transform:translateX(-40px);opacity:0;
+    transition:background .25s ease, padding-left .3s ease;
+  }
+  .band.show{animation:bandIn .5s cubic-bezier(.16,1,.3,1) forwards;}
+  @keyframes bandIn{to{transform:translateX(0);opacity:1;}}
+  .band .inner{display:flex;align-items:center;gap:28px;width:100%;}
+  .band .idx{
+    font-family:var(--font-sans);font-size:clamp(13px,1.3vw,16px);color:var(--gray-dim);
+    min-width:42px;letter-spacing:1px;font-weight:600;
+  }
+  .band .name{
+    font-family:var(--font-display);font-weight:600;font-size:clamp(28px,5.4vw,72px);letter-spacing:.01em;
+    color:var(--bone);line-height:1;text-transform:uppercase;transition:transform .25s ease,color .25s ease;
+  }
+  .band .meta{
+    margin-left:auto;font-family:var(--font-sans);font-weight:500;text-transform:uppercase;
+    letter-spacing:.16em;font-size:13px;color:var(--gray-dim);
+    opacity:0;transform:translateX(20px);transition:.3s ease;white-space:nowrap;
+  }
+  .band .ghost{
+    position:absolute;right:5vw;top:50%;transform:translateY(-50%);
+    font-family:var(--font-display);font-weight:700;font-size:clamp(80px,14vw,190px);
+    color:rgba(255,255,255,.035);pointer-events:none;letter-spacing:-.02em;
+    transition:.3s ease;
+  }
+  .band:hover{background:var(--white);padding-left:6.5vw;}
+  .band:hover .name{color:var(--black);transform:translateX(8px);}
+  .band:hover .idx{color:var(--black);}
+  .band:hover .meta{opacity:1;transform:translateX(0);color:#333;}
+  .band:hover .ghost{color:rgba(0,0,0,.05);}
+  .band.vanish{animation:bandVanish .4s ease-in forwards;}
+  @keyframes bandVanish{to{transform:translateX(60px);opacity:0;}}
+
+  /* ============================================================
+     SCREEN 3 — YEAR SELECTOR  (grilla estilo referencia)
+  ============================================================ */
+  #years{flex-direction:column;overflow:hidden;}
+  #years.active{display:flex;}
+  .yr-head{
+    padding:30px 5vw 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+  }
+  .yr-head .crumb{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.22em;
+    color:var(--gray-dim);font-size:12px;display:flex;gap:10px;align-items:center;margin-bottom:10px;
+  }
+  .yr-head .crumb b{color:var(--white);font-weight:700;}
+  .yr-head .crumb .sep{color:var(--gray-dim);}
+  .yr-head h2{
+    font-family:var(--font-display);font-weight:700;font-size:clamp(32px,5vw,60px);
+    letter-spacing:.01em;text-transform:uppercase;line-height:.95;color:var(--white);
+  }
+  .yr-back{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.16em;
+    font-size:13px;color:var(--gray);cursor:pointer;background:none;border:none;
+    display:inline-flex;align-items:center;gap:8px;padding:8px 0;transition:.2s;
+  }
+  .yr-back:hover{color:var(--white);}
+  .yr-grid{
+    flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);
+    gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    margin:0 5vw 4vh;
+  }
+  .yr-card{
+    position:relative;background:var(--black-2);padding:26px 26px 24px;cursor:pointer;
+    min-height:230px;display:flex;flex-direction:column;
+    opacity:0;transform:translateY(20px);transition:background .25s ease;
+  }
+  .yr-card.show{animation:yrIn .45s ease forwards;}
+  @keyframes yrIn{to{opacity:1;transform:translateY(0);}}
+  .yr-card:hover{background:var(--carbon);}
+  .yr-card.live{background:#101010;}
+  .yr-card.dim{opacity:.4;}
+  .yr-card.dim:hover{opacity:.6;}
+
+  .yr-badge{
+    display:inline-block;align-self:flex-start;background:var(--white);color:var(--black);
+    font-family:var(--font-sans);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    padding:4px 9px;margin-bottom:14px;
+  }
+  .yr-num{
+    font-family:var(--font-display);font-weight:700;font-size:clamp(48px,5.4vw,68px);
+    line-height:.9;letter-spacing:.01em;color:var(--white);margin-bottom:18px;
+  }
+  .yr-card.dim .yr-num{color:var(--gray-dim);}
+  .yr-block{margin-top:auto;}
+  .yr-block + .yr-block{margin-top:14px;}
+  .yr-k{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.18em;
+    font-size:11px;color:var(--gray-dim);margin-bottom:5px;
+  }
+  .yr-v{font-family:var(--font-sans);font-weight:600;font-size:16px;color:var(--bone);}
+  .yr-corner{
+    position:absolute;right:22px;bottom:20px;font-family:var(--font-sans);font-weight:700;
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-dim);
+  }
+
+  /* ============================================================
+     SCREEN 4 — PANEL
+  ============================================================ */
+  #panel{display:none;}
+  #panel.active{display:flex;}
+  .sidebar{
+    width:230px;flex:0 0 230px;height:100%;background:var(--black-2);
+    border-right:1px solid var(--line);display:flex;flex-direction:column;
+  }
+  .sb-brand{padding:24px 22px 20px;border-bottom:1px solid var(--line);}
+  .sb-brand .logo{font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:.02em;text-transform:uppercase;}
+  .sb-brand .logo span{color:var(--gray);}
+  .sb-brand .tagline{font-family:var(--font-sans);font-size:10px;letter-spacing:2.5px;color:var(--gray-dim);margin-top:5px;text-transform:uppercase;}
+  .sb-nav{flex:1;padding:16px 0;}
+  .nav-item{
+    position:relative;display:flex;align-items:center;gap:14px;
+    padding:14px 24px;cursor:pointer;color:var(--gray);
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:14px;
+    transition:.2s;
+  }
+  .nav-item .ic{width:18px;height:18px;display:flex;}
+  .nav-item:hover{color:var(--white);background:rgba(255,255,255,.04);}
+  .nav-item.active{color:var(--white);background:rgba(255,255,255,.07);}
+  .nav-item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--white);}
+  .sb-foot{padding:18px 22px;border-top:1px solid var(--line);font-family:var(--font-sans);font-size:11px;color:var(--gray-dim);letter-spacing:1.5px;text-transform:uppercase;}
+  .sb-foot .exit{color:var(--white);cursor:pointer;font-weight:600;}
+
+  .main{flex:1;height:100%;display:flex;flex-direction:column;overflow:hidden;}
+  .topbar{
+    height:64px;border-bottom:1px solid var(--line);background:var(--black-2);
+    display:flex;align-items:center;justify-content:space-between;padding:0 26px;
+  }
+  .breadcrumb{display:flex;align-items:center;gap:14px;font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:13px;}
+  .breadcrumb .seg{color:var(--gray);}
+  .breadcrumb .seg.cur{color:var(--white);}
+  .breadcrumb .arr{color:var(--gray-dim);}
+  .topbar .telemetry{display:flex;gap:22px;font-family:var(--font-sans);font-size:11px;color:var(--gray-dim);letter-spacing:1px;text-transform:uppercase;}
+  .topbar .telemetry b{color:var(--bone);font-weight:600;}
+
+  .content{flex:1;overflow-y:auto;padding:28px;}
+  .view{display:none;animation:fadeIn .35s ease-out;}
+  .view.active{display:block;}
+
+  .view-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+  .view-head h1{font-family:var(--font-display);font-weight:600;font-size:34px;letter-spacing:.01em;text-transform:uppercase;display:flex;align-items:baseline;gap:14px;}
+  .view-head h1 .lap{font-family:var(--font-sans);font-weight:500;font-size:12px;color:var(--gray-dim);letter-spacing:1.5px;}
+  .head-actions{display:flex;gap:10px;}
+
+  .divider{height:1px;background:var(--line);margin:0 0 22px;}
+
+  .btn{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+    font-size:13px;padding:11px 18px;border:1px solid var(--white);background:var(--white);color:var(--black);
+    cursor:pointer;border-radius:0;transition:.2s;display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{background:var(--bone);border-color:var(--bone);}
+  .btn.ghost{border-color:var(--line);color:var(--gray);background:transparent;}
+  .btn.ghost:hover{border-color:var(--white);color:var(--white);background:transparent;}
+  .btn.sm{padding:7px 12px;font-size:12px;}
+
+  /* stat cards */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .scard{background:var(--carbon-2);border:1px solid var(--line);border-left:3px solid var(--white);padding:16px 18px;}
+  .scard .k{font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--gray-dim);}
+  .scard .v{font-family:var(--font-display);font-weight:600;font-size:30px;margin-top:6px;}
+  .scard .v small{font-family:var(--font-sans);font-size:13px;color:var(--gray);font-weight:500;}
+
+  /* tables */
+  .tbl-wrap{border:1px solid var(--line);background:var(--carbon-2);overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-family:var(--font-sans);}
+  thead th{
+    background:var(--white);color:var(--black);text-align:left;padding:12px 16px;
+    font-family:var(--font-sans);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px;white-space:nowrap;
+  }
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--black);font-size:14px;color:var(--bone);white-space:nowrap;}
+  tbody tr:nth-child(odd){background:var(--carbon-2);}
+  tbody tr:nth-child(even){background:var(--row);}
+  tbody tr:hover{background:rgba(255,255,255,.06);}
+  td .pos{font-family:var(--font-sans);font-weight:700;}
+  td .pos.p1,td .pos.p2,td .pos.p3{color:var(--white);}
+  td .pts{font-family:var(--font-sans);color:var(--white);font-weight:700;}
+  td .team{color:var(--gray);font-size:12px;margin-top:2px;}
+  .row-actions{display:flex;gap:8px;}
+  .icon-btn{background:transparent;border:1px solid var(--line);color:var(--gray);cursor:pointer;padding:5px 10px;font-family:var(--font-sans);font-weight:600;font-size:11px;letter-spacing:.06em;transition:.2s;}
+  .icon-btn:hover{border-color:var(--white);color:var(--white);}
+  .icon-btn.del:hover{background:var(--white);color:var(--black);border-color:var(--white);}
+  /* fila clickeable para ver detalle */
+  tr.clickable{cursor:pointer;transition:background .18s ease;}
+  tr.clickable:hover{background:var(--carbon);}
+  .row-view{color:var(--gray);}
+
+  /* ============================================================
+     DETALLE DE ENTIDAD (ej: ficha de piloto)
+  ============================================================ */
+  .detail-back{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.14em;
+    font-size:12px;color:var(--gray);cursor:pointer;background:none;border:none;
+    display:inline-flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:22px;transition:.2s;
+  }
+  .detail-back:hover{color:var(--white);}
+  .detail-hero{
+    display:flex;align-items:center;gap:26px;padding:28px;
+    background:var(--carbon-2);border:1px solid var(--line);border-left:3px solid var(--white);margin-bottom:24px;
+  }
+  .detail-num{
+    font-family:var(--font-display);font-weight:700;font-size:clamp(56px,9vw,104px);line-height:.85;
+    color:var(--white);min-width:1.4em;text-align:center;
+  }
+  .detail-id .dname{
+    font-family:var(--font-display);font-weight:700;font-size:clamp(28px,4vw,46px);text-transform:uppercase;
+    line-height:.98;color:var(--white);
+  }
+  .detail-id .dteam{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.18em;
+    font-size:13px;color:var(--gray);margin-top:10px;
+  }
+  .detail-id .dflag{
+    display:inline-block;margin-top:14px;background:var(--white);color:var(--black);
+    font-family:var(--font-sans);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;
+  }
+  .detail-actions{margin-left:auto;display:flex;gap:10px;align-self:flex-start;flex-wrap:wrap;justify-content:flex-end;}
+  .sect-title{
+    font-family:var(--font-sans);font-weight:700;text-transform:uppercase;letter-spacing:.18em;
+    font-size:12px;color:var(--gray-dim);margin:6px 0 14px;
+  }
+  @media(max-width:680px){
+    .detail-hero{flex-direction:column;align-items:flex-start;gap:18px;}
+    .detail-actions{margin-left:0;}
+  }
+
+  .dot-status{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;}
+  .dot-status.done{background:var(--white);}
+  .dot-status.next{background:var(--white);animation:blink 1.2s steps(2) infinite;}
+  .dot-status.up{background:var(--gray-dim);}
+  @keyframes blink{50%{opacity:.25;}}
+
+  /* ============================================================
+     SCREEN 5 — FORMULARIO (carga manual, pantalla aparte)
+  ============================================================ */
+  #formScreen{display:none;flex-direction:column;background:var(--black);}
+  #formScreen.active{display:flex;}
+  .form-top{
+    height:64px;border-bottom:1px solid var(--line);background:var(--black-2);
+    display:flex;align-items:center;justify-content:space-between;padding:0 26px;
+  }
+  .back-link{
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:13px;
+    color:var(--gray);cursor:pointer;background:none;border:none;display:inline-flex;align-items:center;gap:8px;transition:.2s;
+  }
+  .back-link:hover{color:var(--white);}
+  .form-top .tag{font-family:var(--font-sans);font-size:11px;color:var(--gray-dim);letter-spacing:2px;text-transform:uppercase;}
+  .form-body{flex:1;overflow-y:auto;display:flex;justify-content:center;padding:40px 24px;}
+  .form-card{width:min(560px,100%);}
+  .form-card h1{font-family:var(--font-display);font-weight:600;font-size:38px;text-transform:uppercase;letter-spacing:.01em;}
+  .form-card .sub{font-family:var(--font-sans);font-size:12px;color:var(--gray-dim);letter-spacing:2px;text-transform:uppercase;margin:6px 0 30px;}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;}
+  .field{position:relative;}
+  .field.full{grid-column:1 / -1;}
+  .field label{display:block;font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--gray);margin-bottom:8px;}
+  .field input,.field select{
+    width:100%;background:var(--carbon-2);border:1px solid var(--line);
+    color:var(--white);font-family:var(--font-sans);font-size:15px;padding:12px 14px;outline:none;transition:.2s;border-radius:0;
+  }
+  .field input:focus,.field select:focus{border-color:var(--white);}
+  .field select option{background:var(--carbon);}
+  .form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:34px;}
+
+  /* ============================================================
+     SCREEN 6 — IMPORTAR PDF
+  ============================================================ */
+  #pdfUpload{display:none;flex-direction:column;background:var(--black);}
+  #pdfUpload.active{display:flex;}
+  .pdf-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;}
+  .pdf-intro{text-align:center;margin-bottom:30px;}
+  .pdf-intro h1{font-family:var(--font-display);font-weight:600;font-size:40px;text-transform:uppercase;letter-spacing:.01em;}
+  .pdf-intro p{font-family:var(--font-sans);font-size:14px;color:var(--gray);margin-top:10px;max-width:440px;line-height:1.5;}
+  .dropzone{
+    width:min(560px,100%);border:2px dashed var(--line);background:var(--carbon-2);
+    padding:54px 30px;text-align:center;cursor:pointer;transition:.2s;
+  }
+  .dropzone:hover,.dropzone.drag{border-color:var(--white);background:var(--carbon);}
+  .dropzone .dz-icon{width:56px;height:56px;margin:0 auto 18px;color:var(--gray);}
+  .dropzone .dz-title{font-family:var(--font-sans);font-weight:600;font-size:16px;color:var(--white);}
+  .dropzone .dz-hint{font-family:var(--font-sans);font-size:13px;color:var(--gray-dim);margin-top:6px;}
+  .dz-file{margin-top:22px;font-family:var(--font-sans);font-size:14px;color:var(--white);display:none;align-items:center;gap:10px;justify-content:center;}
+  .dz-file.show{display:flex;}
+  .filebadge{border:1px solid var(--line);padding:8px 14px;display:inline-flex;gap:10px;align-items:center;}
+  .filebadge svg{color:var(--gray);}
+  .pdf-actions{display:flex;gap:12px;margin-top:30px;}
+
+  /* ============================================================
+     SCREEN 7 — REVISIÓN DE DATOS
+  ============================================================ */
+  #pdfReview{display:none;flex-direction:column;background:var(--black);}
+  #pdfReview.active{display:flex;}
+  .review-body{flex:1;overflow-y:auto;padding:32px;max-width:1000px;margin:0 auto;width:100%;}
+  .review-head h1{font-family:var(--font-display);font-weight:600;font-size:34px;text-transform:uppercase;letter-spacing:.01em;}
+  .review-head .sub{font-family:var(--font-sans);font-size:13px;color:var(--gray);margin:8px 0 4px;}
+  .notice{
+    display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);background:var(--carbon-2);
+    padding:14px 16px;margin:20px 0;font-family:var(--font-sans);font-size:13px;color:var(--bone);line-height:1.5;
+  }
+  .notice svg{flex:0 0 auto;color:var(--white);margin-top:1px;}
+  .notice b{color:var(--white);}
+  .rev-tbl{border:1px solid var(--line);background:var(--carbon-2);overflow-x:auto;}
+  .rev-tbl table{width:100%;border-collapse:collapse;}
+  .rev-tbl thead th{background:var(--white);color:var(--black);text-align:left;padding:11px 12px;font-family:var(--font-sans);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;}
+  .rev-tbl tbody td{padding:8px 10px;border-bottom:1px solid var(--black);}
+  .rev-tbl tbody tr:nth-child(odd){background:var(--carbon-2);}
+  .rev-tbl tbody tr:nth-child(even){background:var(--row);}
+  .rev-tbl input{width:100%;background:transparent;border:1px solid transparent;color:var(--white);font-family:var(--font-sans);font-size:14px;padding:7px 9px;outline:none;transition:.15s;}
+  .rev-tbl input:hover{border-color:var(--line);}
+  .rev-tbl input:focus{border-color:var(--white);background:var(--black);}
+  .rev-tbl td.flag input{border-color:#7a5c00;background:rgba(255,200,0,.06);}
+  .rev-flag-note{font-family:var(--font-sans);font-size:12px;color:var(--gray);margin-top:12px;display:flex;align-items:center;gap:8px;}
+  .rev-flag-dot{width:10px;height:10px;border:1px solid #7a5c00;background:rgba(255,200,0,.18);display:inline-block;}
+  .review-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:26px;}
+  .rev-del{background:transparent;border:1px solid var(--line);color:var(--gray);cursor:pointer;padding:6px 9px;font-family:var(--font-sans);font-weight:600;font-size:11px;transition:.2s;}
+  .rev-del:hover{border-color:var(--white);color:var(--white);}
+
+  /* ============================================================
+     NOTIFICATION
+  ============================================================ */
+  #notify{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9700;display:flex;flex-direction:column;align-items:center;}
+  .toast{
+    margin-top:0;background:var(--white);color:var(--black);
+    font-family:var(--font-sans);font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:13px;
+    padding:13px 28px;
+    transform:translateY(-120%);animation:toastDrop 3.2s cubic-bezier(.16,1,.3,1) forwards;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+  }
+  .toast.warn{background:var(--carbon);color:var(--white);border-bottom:2px solid var(--white);}
+  .toast .lead{margin-right:8px;font-weight:800;}
+  @keyframes toastDrop{
+    0%{transform:translateY(-120%);}
+    12%{transform:translateY(0);}
+    88%{transform:translateY(0);}
+    100%{transform:translateY(-120%);}
+  }
+
+  @media (max-width:820px){
+    .sidebar{width:60px;flex:0 0 60px;}
+    .sb-brand .logo,.sb-brand .tagline,.nav-item span,.sb-foot{display:none;}
+    .nav-item{justify-content:center;padding:18px 0;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .topbar .telemetry{display:none;}
+    .band .ghost{display:none;}
+    .yr-grid{grid-template-columns:repeat(2,1fr);}
+    .fgrid{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .yr-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+  <div class="bg-texture"></div>
+
+  <!-- ================= SCREEN 0: LOGIN ================= -->
+  <section class="screen active" id="login">
+    <div class="login-wrap">
+      <h1 class="login-brand">Admin<span>Tin</span></h1>
+      <p class="login-sub">Sistema de Gestión de Campeonatos</p>
+      <div class="checker-strip dim login-strip"></div>
+      <form class="login-form" id="loginForm" autocomplete="off">
+        <div class="login-field">
+          <label for="loginUser">Usuario</label>
+          <input type="text" id="loginUser" placeholder="Ingresá tu usuario" autocomplete="username" />
+        </div>
+        <div class="login-field">
+          <label for="loginPass">Contraseña</label>
+          <input type="password" id="loginPass" placeholder="Ingresá tu contraseña" autocomplete="current-password" />
+        </div>
+        <div class="login-error" id="loginError">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <span id="loginErrorMsg">Usuario o contraseña incorrectos</span>
+        </div>
+        <button type="submit" class="login-btn">Ingresar &#9654;</button>
+      </form>
+      <div class="login-foot">Acceso restringido · Panel de administración</div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 1: INTRO ================= -->
+  <section class="screen" id="intro">
+    <div class="intro-core">
+      <div class="checker-bg"></div>
+      <h1 class="intro-title">Admin<span class="tin">Tin</span></h1>
+      <p class="intro-sub">Sistema de Gestión de Campeonatos</p>
+      <div class="grid-lights" id="gridLights">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="intro-progress">
+        Cargando
+        <div class="intro-bar"><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 2: CATEGORY ================= -->
+  <section class="screen" id="categories">
+    <div class="cat-head">
+      <div>
+        <div class="kicker">AdminTin</div>
+        <h2>Elegí la categoría</h2>
+      </div>
+      <div class="head-right">
+        <div class="step">Paso 01 / 02</div>
+        <div class="search-box cat-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="catSearch" placeholder="Buscar categoría…" autocomplete="off" oninput="renderCategories()" />
+        </div>
+      </div>
+    </div>
+    <div class="checker-strip dim"></div>
+    <div class="cat-list" id="catList"></div>
+  </section>
+
+  <!-- ================= SCREEN 3: YEAR ================= -->
+  <section class="screen" id="years">
+    <div class="yr-head">
+      <div>
+        <div class="crumb"><span>AdminTin</span><span class="sep">/</span><b id="yrCrumb">—</b><span class="sep">/</span><span>Temporada</span></div>
+        <h2>Elegí la temporada</h2>
+      </div>
+      <div class="head-right">
+        <button class="yr-back" onclick="backToCategories()">&larr; Cambiar categoría</button>
+        <div class="search-box yr-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="yrSearch" placeholder="Buscar temporada…" autocomplete="off" oninput="renderYears()" />
+        </div>
+      </div>
+    </div>
+    <div class="checker-strip dim"></div>
+    <div class="yr-grid" id="yrGrid"></div>
+  </section>
+
+  <!-- ================= SCREEN 4: PANEL ================= -->
+  <section class="screen" id="panel">
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <div class="logo">Admin<span>Tin</span></div>
+        <div class="tagline">Gestión de campeonatos</div>
+      </div>
+      <nav class="sb-nav" id="navList"></nav>
+      <div class="sb-foot">Sesión // <span class="exit" onclick="restart()">Salir &#8634;</span></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="breadcrumb">
+          <span class="seg" id="bcCat">—</span>
+          <span class="arr">&rsaquo;</span>
+          <span class="seg" id="bcYear">—</span>
+          <span class="arr">&rsaquo;</span>
+          <span class="seg cur" id="bcView">Resultados</span>
+        </div>
+        <div class="telemetry">
+          <span>Estado <b>Activo</b></span>
+          <span>Usuario <b>Admin</b></span>
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 5: FORM (carga manual) ================= -->
+  <section class="screen" id="formScreen">
+    <div class="form-top">
+      <button class="back-link" onclick="showScreen('panel')">&larr; Volver al panel</button>
+      <div class="tag" id="formTag">// Carga manual</div>
+    </div>
+    <div class="form-body">
+      <div class="form-card">
+        <h1 id="formTitle">Nuevo registro</h1>
+        <div class="sub" id="formSub">Completá los campos</div>
+        <div class="fgrid" id="formFields"></div>
+        <div class="form-actions">
+          <button class="btn ghost" onclick="showScreen('panel')">Cancelar</button>
+          <button class="btn" onclick="saveForm()">Guardar registro</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 6: IMPORTAR PDF ================= -->
+  <section class="screen" id="pdfUpload">
+    <div class="form-top">
+      <button class="back-link" onclick="showScreen('panel')">&larr; Volver al panel</button>
+      <div class="tag">// Importar desde PDF</div>
+    </div>
+    <div class="pdf-body">
+      <div class="pdf-intro">
+        <h1>Importar resultados</h1>
+        <p>Subí el PDF oficial con los resultados de la carrera. AdminTin va a extraer los datos para que después los revises y confirmes.</p>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <div class="dz-title">Arrastrá tu PDF acá o hacé click para buscar</div>
+        <div class="dz-hint">Formato admitido: PDF · hasta 10 MB</div>
+        <input type="file" id="pdfInput" accept="application/pdf" hidden />
+      </div>
+      <div class="dz-file" id="dzFile">
+        <span class="filebadge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <span id="dzFileName">resultados.pdf</span>
+        </span>
+      </div>
+      <div class="pdf-actions">
+        <button class="btn ghost" onclick="showScreen('panel')">Cancelar</button>
+        <button class="btn" id="processBtn" onclick="processPdf()" disabled style="opacity:.45;cursor:not-allowed;">Procesar PDF &#9654;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 7: REVISIÓN ================= -->
+  <section class="screen" id="pdfReview">
+    <div class="form-top">
+      <button class="back-link" onclick="showScreen('pdfUpload')">&larr; Volver a subir</button>
+      <div class="tag">// Revisión de datos</div>
+    </div>
+    <div class="review-body">
+      <div class="review-head">
+        <h1>Revisá los datos extraídos</h1>
+        <div class="sub" id="revFileName">Archivo: resultados.pdf</div>
+      </div>
+      <div class="notice">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div><b>Verificá antes de confirmar.</b> La extracción automática puede tener errores. Corregí cualquier dato incorrecto en la tabla. Las celdas marcadas son las que AdminTin no pudo leer con seguridad.</div>
+      </div>
+      <div class="rev-tbl">
+        <table>
+          <thead><tr><th style="width:70px;">Pos</th><th>Piloto</th><th>Escudería</th><th style="width:150px;">Tiempo / Gap</th><th style="width:90px;">Puntos</th><th style="width:60px;"></th></tr></thead>
+          <tbody id="revBody"></tbody>
+        </table>
+      </div>
+      <div class="rev-flag-note"><span class="rev-flag-dot"></span> Celda con baja confianza — revisá manualmente</div>
+      <div class="review-actions">
+        <button class="btn ghost" onclick="showScreen('pdfUpload')">Cancelar</button>
+        <button class="btn" onclick="confirmImport()">Confirmar e importar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- notifications -->
+  <div id="notify"></div>
+
+<script>
+/* ============================================================
+   DATA (mock)
+============================================================ */
+const CATEGORIES = [
+  {id:'f1',  name:'FÓRMULA 1',         ghost:'F1', races:24, sub:'24 GP · Monoplazas'},
+  {id:'tc',  name:'TURISMO CARRETERA', ghost:'TC', races:15, sub:'15 fechas · Argentina'},
+  {id:'nas', name:'NASCAR',            ghost:'NA', races:36, sub:'36 fechas · USA'},
+  {id:'wrc', name:'WRC RALLY',         ghost:'WR', races:13, sub:'13 rallies · Tierra'},
+  {id:'mgp', name:'MOTOGP',            ghost:'MG', races:20, sub:'20 GP · Motos'},
+  {id:'idy', name:'INDYCAR',           ghost:'IN', races:17, sub:'17 fechas · USA'},
+];
+
+const SEASONS = [
+  {year:'2026', raced:8,  races:24, leader:'—',             live:true,  round:8},
+  {year:'2025', raced:24, races:24, champ:'M. Verstappen',  live:false},
+  {year:'2024', raced:24, races:24, champ:'M. Verstappen',  live:false},
+  {year:'2023', raced:23, races:23, champ:'M. Verstappen',  live:false, dim:true},
+  {year:'2022', raced:22, races:22, champ:'M. Verstappen',  live:false, dim:true},
+  {year:'2021', raced:22, races:22, champ:'M. Verstappen',  live:false, dim:true},
+];
+
+const DRIVERS = [
+  {pos:1,driver:'Max Verstappen',team:'Red Bull Racing',nat:'NED',pts:312,wins:9},
+  {pos:2,driver:'Lando Norris',team:'McLaren',nat:'GBR',pts:268,wins:4},
+  {pos:3,driver:'Charles Leclerc',team:'Ferrari',nat:'MON',pts:241,wins:3},
+  {pos:4,driver:'Oscar Piastri',team:'McLaren',nat:'AUS',pts:222,wins:2},
+  {pos:5,driver:'Carlos Sainz',team:'Ferrari',nat:'ESP',pts:190,wins:1},
+  {pos:6,driver:'Lewis Hamilton',team:'Mercedes',nat:'GBR',pts:164,wins:1},
+  {pos:7,driver:'George Russell',team:'Mercedes',nat:'GBR',pts:155,wins:0},
+  {pos:8,driver:'Sergio Pérez',team:'Red Bull Racing',nat:'MEX',pts:131,wins:0},
+];
+
+let RESULTS = [
+  {pos:1,driver:'Max Verstappen',team:'Red Bull Racing',time:'1:31:44.742',pts:25},
+  {pos:2,driver:'Lando Norris',team:'McLaren',time:'+4.318',pts:18},
+  {pos:3,driver:'Charles Leclerc',team:'Ferrari',time:'+9.001',pts:15},
+  {pos:4,driver:'Oscar Piastri',team:'McLaren',time:'+12.660',pts:12},
+  {pos:5,driver:'Carlos Sainz',team:'Ferrari',time:'+18.224',pts:10},
+  {pos:6,driver:'Lewis Hamilton',team:'Mercedes',time:'+24.880',pts:8},
+];
+
+const CALENDAR = [
+  {rnd:1,gp:'Bahréin',circuit:'Sakhir',date:'02 MAR',status:'done'},
+  {rnd:2,gp:'Arabia Saudita',circuit:'Jeddah',date:'09 MAR',status:'done'},
+  {rnd:3,gp:'Australia',circuit:'Albert Park',date:'23 MAR',status:'done'},
+  {rnd:4,gp:'Japón',circuit:'Suzuka',date:'06 ABR',status:'next'},
+  {rnd:5,gp:'China',circuit:'Shanghái',date:'20 ABR',status:'up'},
+  {rnd:6,gp:'Miami',circuit:'Miami Int.',date:'04 MAY',status:'up'},
+];
+
+/* datos que el "parser" del PDF devolvería (mock) */
+const PDF_EXTRACT = [
+  {pos:'1', driver:'Max Verstappen',   team:'Red Bull Racing', time:'1:31:44.742', pts:'25', flags:[]},
+  {pos:'2', driver:'Lando Norris',     team:'McLaren',         time:'+4.318',      pts:'18', flags:[]},
+  {pos:'3', driver:'Charles Leclerc',  team:'Ferrari',         time:'+9.001',      pts:'15', flags:['time']},
+  {pos:'4', driver:'Oscar Piastri',    team:'McLaren',         time:'+12.660',     pts:'12', flags:[]},
+  {pos:'5', driver:'Carlos Sainz',     team:'Ferrari',         time:'+18.224',     pts:'10', flags:['driver']},
+  {pos:'6', driver:'Lewis Hamilton',   team:'Mercedes',        time:'+24.880',     pts:'8',  flags:[]},
+  {pos:'7', driver:'George Russell',   team:'Mercedes',        time:'+31.115',     pts:'6',  flags:[]},
+];
+
+const ICONS={
+  results:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 21V4h6l1 2h8v9h-8l-1-2H4"/></svg>',
+  standings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  drivers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="5" width="18" height="16"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>',
+};
+const NAV = [
+  {id:'results',  label:'Resultados', icon:ICONS.results},
+  {id:'standings',label:'Tabla',      icon:ICONS.standings},
+  {id:'drivers',  label:'Pilotos',    icon:ICONS.drivers},
+  {id:'calendar', label:'Calendario', icon:ICONS.calendar},
+];
+
+const STATE = {category:null, year:null, view:'results'};
+
+/* ============================================================
+   NAVEGACIÓN DE PANTALLAS
+============================================================ */
+function showScreen(id){
+  const cur = document.querySelector('.screen.active');
+  const next = document.getElementById(id);
+  if(cur===next) return;
+  if(cur){
+    cur.classList.add('fade-out');
+    setTimeout(()=>cur.classList.remove('active','fade-out'), 320);
+  }
+  setTimeout(()=>{
+    next.classList.add('active','fade-in');
+    setTimeout(()=>next.classList.remove('fade-in'), 420);
+    if(id==='categories'){ const cs=document.getElementById('catSearch'); if(cs) cs.value=''; renderCategories(); }
+    if(id==='years'){ const ys=document.getElementById('yrSearch'); if(ys) ys.value=''; renderYears(); }
+  }, cur?300:0);
+}
+
+/* ============================================================
+   SCREEN 0: LOGIN
+============================================================ */
+/* credenciales demo — reemplazar por la auth real de Laravel */
+const DEMO_USER='admin';
+const DEMO_PASS='admin';
+
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginError');
+  if(!user || !pass){
+    document.getElementById('loginErrorMsg').textContent='Completá usuario y contraseña';
+    err.classList.add('show');
+    return;
+  }
+  if(user.toLowerCase()!==DEMO_USER || pass!==DEMO_PASS){
+    document.getElementById('loginErrorMsg').textContent='Usuario o contraseña incorrectos';
+    err.classList.add('show');
+    return;
+  }
+  err.classList.remove('show');
+  // login OK -> splashscreen estilo Netflix
+  showScreen('intro');
+  startSplash();
+});
+
+/* ============================================================
+   SCREEN 1: INTRO / SPLASH (se dispara después del login)
+============================================================ */
+let splashStarted=false;
+function startSplash(){
+  if(splashStarted) return;
+  splashStarted=true;
+
+  // secuencia de luces de largada estilo F1
+  const lights=[...document.querySelectorAll('#gridLights span')];
+  lights.forEach((l,i)=> setTimeout(()=>l.classList.add('on'), 1300+i*300));
+  setTimeout(()=>lights.forEach(l=>l.classList.remove('on')), 2900);
+
+  // "lights out" -> arranca el selector de categorías
+  setTimeout(()=>{
+    showScreen('categories');
+  }, 3000);
+}
+
+/* ============================================================
+   SCREEN 2: CATEGORIES
+============================================================ */
+function renderCategories(){
+  const list=document.getElementById('catList');
+  list.innerHTML='';
+  const q=(document.getElementById('catSearch')?.value||'').trim().toLowerCase();
+  const filtered=CATEGORIES.filter(c=>
+    c.name.toLowerCase().includes(q) || (c.sub||'').toLowerCase().includes(q)
+  );
+  if(filtered.length===0){
+    list.innerHTML=`<div class="empty-hint">Sin categorías que coincidan con "${q}"</div>`;
+    return;
+  }
+  filtered.forEach((c,i)=>{
+    const b=document.createElement('div');
+    b.className='band';
+    b.innerHTML=`
+      <div class="speed"></div>
+      <div class="ghost">${c.ghost}</div>
+      <div class="inner">
+        <span class="idx">${String(i+1).padStart(2,'0')}</span>
+        <span class="name">${c.name}</span>
+        <span class="meta">${c.sub} &#9656;</span>
+      </div>`;
+    b.addEventListener('click',()=>selectCategory(c,b,list));
+    list.appendChild(b);
+    setTimeout(()=>b.classList.add('show'), 70*i+50);
+  });
+}
+
+function selectCategory(c,band,list){
+  STATE.category=c;
+  [...list.children].forEach(ch=>{ if(ch!==band) ch.classList.add('vanish'); });
+  setTimeout(()=>{ showScreen('years'); }, 280);
+}
+
+function backToCategories(){ showScreen('categories'); }
+
+/* ============================================================
+   SCREEN 3: YEARS (grilla)
+============================================================ */
+function renderYears(){
+  document.getElementById('yrCrumb').textContent = STATE.category ? STATE.category.name : '—';
+  const grid=document.getElementById('yrGrid');
+  grid.innerHTML='';
+  const q=(document.getElementById('yrSearch')?.value||'').trim().toLowerCase();
+  const filtered=SEASONS.filter(s=>
+    String(s.year).toLowerCase().includes(q) || (s.champ||'').toLowerCase().includes(q) || (s.leader||'').toLowerCase().includes(q)
+  );
+  if(filtered.length===0){
+    grid.style.display='block';
+    grid.innerHTML=`<div class="empty-hint">Sin temporadas que coincidan con "${q}"</div>`;
+    return;
+  }
+  grid.style.display='grid';
+  filtered.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.className='yr-card'+(s.live?' live':'')+(s.dim?' dim':'');
+    if(s.live){
+      card.innerHTML=`
+        <span class="yr-badge">En curso</span>
+        <div class="yr-num">${s.year}</div>
+        <div class="yr-block">
+          <div class="yr-k">Carreras disputadas</div>
+          <div class="yr-v">${s.raced} / ${s.races}</div>
+        </div>
+        <div class="yr-block">
+          <div class="yr-k">Líder</div>
+          <div class="yr-v">${s.leader}</div>
+        </div>
+        <div class="yr-corner">RND ${String(s.round).padStart(2,'0')}</div>`;
+    } else {
+      card.innerHTML=`
+        <div class="yr-num">${s.year}</div>
+        <div class="yr-block">
+          <div class="yr-k">Campeón</div>
+          <div class="yr-v">${s.champ}</div>
+        </div>
+        <div class="yr-block">
+          <div class="yr-k">Carreras</div>
+          <div class="yr-v">${s.races}</div>
+        </div>
+        <div class="yr-corner">Completo</div>`;
+    }
+    card.addEventListener('click',()=>selectYear(s,card));
+    grid.appendChild(card);
+    setTimeout(()=>card.classList.add('show'), 70*i+60);
+  });
+}
+
+function selectYear(s,card){
+  STATE.year=s;
+  buildPanel();
+  showScreen('panel');
+}
+
+/* ============================================================
+   SCREEN 4: PANEL
+============================================================ */
+function buildPanel(){
+  const nav=document.getElementById('navList');
+  nav.innerHTML='';
+  NAV.forEach(n=>{
+    const it=document.createElement('div');
+    it.className='nav-item'+(n.id===STATE.view?' active':'');
+    it.innerHTML=`<span class="ic">${n.icon}</span><span>${n.label}</span>`;
+    it.addEventListener('click',()=>switchView(n.id));
+    nav.appendChild(it);
+  });
+  document.getElementById('bcCat').textContent=STATE.category.name;
+  document.getElementById('bcYear').textContent='Temp. '+STATE.year.year;
+  renderView();
+}
+
+function switchView(id){
+  STATE.view=id;
+  STATE.detail=null;
+  document.querySelectorAll('.nav-item').forEach((it,i)=>{
+    it.classList.toggle('active', NAV[i].id===id);
+  });
+  document.getElementById('bcView').textContent=NAV.find(n=>n.id===id).label;
+  renderView();
+}
+
+function renderView(){
+  const c=document.getElementById('content');
+  if(STATE.detail){ c.innerHTML=viewDriverDetail(STATE.detail); return; }
+  if(STATE.view==='results') c.innerHTML=viewResults();
+  else if(STATE.view==='standings') c.innerHTML=viewStandings();
+  else if(STATE.view==='drivers') c.innerHTML=viewDrivers();
+  else if(STATE.view==='calendar') c.innerHTML=viewCalendar();
+}
+
+/* abre / cierra la ficha de detalle de un piloto */
+function openDriver(name){
+  STATE.detail=DRIVERS.find(d=>d.driver===name)||null;
+  document.getElementById('bcView').textContent='Detalle';
+  renderView();
+}
+function closeDetail(){
+  STATE.detail=null;
+  document.getElementById('bcView').textContent=NAV.find(n=>n.id===STATE.view)?.label||'Resultados';
+  renderView();
+}
+
+function posClass(p){ return p<=3?`pos p${p}`:'pos'; }
+
+function viewResults(){
+  const rows=RESULTS.map(r=>`
+    <tr class="clickable" onclick="openDriver('${r.driver}')">
+      <td><span class="${posClass(r.pos)}">P${r.pos}</span></td>
+      <td>${r.driver}<div class="team">${r.team}</div></td>
+      <td>${r.time}</td>
+      <td><span class="pts">${r.pts}</span></td>
+      <td><div class="row-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn" onclick="openForm('result','Editar resultado')">Editar</button>
+        <button class="icon-btn del" onclick="delRow(this)">Borrar</button>
+      </div></td>
+    </tr>`).join('');
+  return `
+    <div class="view-head">
+      <h1>Resultados <span class="lap">GP Japón — Ronda 04</span></h1>
+      <div class="head-actions">
+        <button class="btn ghost" onclick="openPdf()">&#8593; Importar PDF</button>
+        <button class="btn" onclick="openForm('result','Nuevo resultado')">+ Carga manual</button>
+      </div>
+    </div>
+    <div class="stat-grid">
+      ${scard('Vueltas','53','/ 53')}
+      ${scard('Pole','VERSTAPPEN','')}
+      ${scard('Vuelta rápida','1:30.9','LeC')}
+      ${scard('DNF','2','autos')}
+    </div>
+    <div class="divider"></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Pos</th><th>Piloto</th><th>Tiempo / Gap</th><th>Puntos</th><th>Acciones</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+function viewStandings(){
+  const rows=DRIVERS.map(d=>`
+    <tr class="clickable" onclick="openDriver('${d.driver}')">
+      <td><span class="${posClass(d.pos)}">${d.pos}</span></td>
+      <td>${d.driver}<div class="team">${d.team}</div></td>
+      <td style="color:var(--gray)">${d.nat}</td>
+      <td>${d.wins}</td>
+      <td><span class="pts">${d.pts}</span></td>
+    </tr>`).join('');
+  return `
+    <div class="view-head">
+      <h1>Tabla de campeonato <span class="lap">Pilotos</span></h1>
+      <div class="head-actions"><button class="btn ghost" onclick="toast('Tabla recalculada','warn')">&#8635; Recalcular</button></div>
+    </div>
+    <div class="stat-grid">
+      ${scard('Líder','VERSTAPPEN','312 pts')}
+      ${scard('Diferencia','44','pts P1-P2')}
+      ${scard('Equipos','10','activos')}
+      ${scard('Fechas','4','/ '+STATE.year.races)}
+    </div>
+    <div class="divider"></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Pos</th><th>Piloto</th><th>Nac.</th><th>Victorias</th><th>Puntos</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+function viewDrivers(){
+  const rows=DRIVERS.map(d=>`
+    <tr class="clickable" onclick="openDriver('${d.driver}')">
+      <td><span class="pos">#${d.pos}</span></td>
+      <td>${d.driver}</td>
+      <td style="color:var(--gray)">${d.team}</td>
+      <td>${d.nat}</td>
+      <td><div class="row-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn" onclick="openDriver('${d.driver}')">Ver</button>
+        <button class="icon-btn" onclick="openForm('driver','Editar piloto')">Editar</button>
+        <button class="icon-btn del" onclick="delRow(this)">Borrar</button>
+      </div></td>
+    </tr>`).join('');
+  return `
+    <div class="view-head">
+      <h1>Pilotos <span class="lap">Roster ${STATE.year.year}</span></h1>
+      <div class="head-actions"><button class="btn" onclick="openForm('driver','Nuevo piloto')">+ Agregar piloto</button></div>
+    </div>
+    <div class="divider"></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Piloto</th><th>Escudería</th><th>Nac.</th><th>Acciones</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+/* ============================================================
+   DETALLE DE PILOTO
+============================================================ */
+function viewDriverDetail(d){
+  // últimos resultados del piloto (mock a partir de RESULTS)
+  const recent=RESULTS.filter(r=>r.driver===d.driver);
+  const recentRows = recent.length ? recent.map(r=>`
+    <tr>
+      <td><span class="${posClass(r.pos)}">P${r.pos}</span></td>
+      <td>GP Japón — Ronda 04</td>
+      <td>${r.time}</td>
+      <td><span class="pts">${r.pts}</span></td>
+    </tr>`).join('') : `<tr><td colspan="4" style="color:var(--gray-dim)">Sin resultados cargados para este piloto.</td></tr>`;
+  return `
+    <button class="detail-back" onclick="closeDetail()">&larr; Volver a ${STATE.view==='drivers'?'pilotos':'la tabla'}</button>
+    <div class="detail-hero">
+      <div class="detail-num">${d.pos}</div>
+      <div class="detail-id">
+        <div class="dname">${d.driver}</div>
+        <div class="dteam">${d.team}</div>
+        <span class="dflag">${d.nat}</span>
+      </div>
+      <div class="detail-actions">
+        <button class="btn ghost" onclick="openForm('driver','Editar piloto')">Editar piloto</button>
+        <button class="btn ghost" onclick="closeDetail()">Cerrar</button>
+      </div>
+    </div>
+    <div class="stat-grid">
+      ${scard('Puntos',d.pts,'temporada')}
+      ${scard('Victorias',d.wins,'este año')}
+      ${scard('Posición','P'+d.pos,'campeonato')}
+      ${scard('Nacionalidad',d.nat,'')}
+    </div>
+    <div class="divider"></div>
+    <div class="sect-title">Últimos resultados</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Pos</th><th>Gran Premio</th><th>Tiempo / Gap</th><th>Puntos</th></tr></thead>
+      <tbody>${recentRows}</tbody>
+    </table></div>`;
+}
+
+function viewCalendar(){
+  const rows=CALENDAR.map(c=>`
+    <tr>
+      <td><span class="pos">R${String(c.rnd).padStart(2,'0')}</span></td>
+      <td><span class="dot-status ${c.status}"></span>${c.gp}</td>
+      <td style="color:var(--gray)">${c.circuit}</td>
+      <td>${c.date}</td>
+      <td>${c.status==='done'?'Finalizado':c.status==='next'?'Próxima':'Programada'}</td>
+      <td><div class="row-actions">
+        <button class="icon-btn" onclick="openForm('race','Editar fecha')">Editar</button>
+        <button class="icon-btn del" onclick="delRow(this)">Borrar</button>
+      </div></td>
+    </tr>`).join('');
+  return `
+    <div class="view-head">
+      <h1>Calendario <span class="lap">${STATE.year.races} fechas</span></h1>
+      <div class="head-actions"><button class="btn" onclick="openForm('race','Nueva fecha')">+ Agregar fecha</button></div>
+    </div>
+    <div class="divider"></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Ronda</th><th>Gran Premio</th><th>Circuito</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+function scard(k,v,small){
+  return `<div class="scard"><div class="k">${k}</div><div class="v">${v} <small>${small}</small></div></div>`;
+}
+
+/* ============================================================
+   SCREEN 5: FORM (carga manual en pantalla aparte)
+============================================================ */
+const FORMS={
+  result:{title:'resultado', fields:[['Posición','number'],['Piloto','text'],['Escudería','text'],['Tiempo / Gap','text'],['Puntos','number']]},
+  driver:{title:'piloto',    fields:[['Nombre','text'],['Escudería','text'],['Nacionalidad','text'],['Número','number']]},
+  race:{title:'fecha',       fields:[['Ronda','number'],['Gran Premio','text'],['Circuito','text'],['Fecha','text']]},
+};
+function openForm(type,title){
+  const cfg=FORMS[type];
+  document.getElementById('formTitle').textContent=title;
+  document.getElementById('formSub').textContent='Carga manual de '+cfg.title;
+  const wrap=document.getElementById('formFields');
+  wrap.innerHTML=cfg.fields.map((f,i)=>{
+    const full=(f[0]==='Piloto'||f[0]==='Nombre'||f[0]==='Gran Premio');
+    return `
+    <div class="field${full?' full':''}">
+      <label>${f[0]}</label>
+      <input type="${f[1]}" id="ff${i}" ${f[1]==='number'?'min="0"':''} placeholder="${f[0]}">
+    </div>`;
+  }).join('');
+  showScreen('formScreen');
+}
+function saveForm(){ showScreen('panel'); toast('Registro guardado','warn'); }
+
+/* ============================================================
+   SCREEN 6: IMPORTAR PDF
+============================================================ */
+let pdfFileName='';
+function openPdf(){
+  pdfFileName='';
+  document.getElementById('dzFile').classList.remove('show');
+  const btn=document.getElementById('processBtn');
+  btn.disabled=true; btn.style.opacity='.45'; btn.style.cursor='not-allowed';
+  showScreen('pdfUpload');
+}
+function setupDropzone(){
+  const dz=document.getElementById('dropzone');
+  const input=document.getElementById('pdfInput');
+  dz.addEventListener('click',()=>input.click());
+  input.addEventListener('change',e=>{ if(e.target.files[0]) onFile(e.target.files[0].name); });
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) onFile(f.name); });
+}
+function onFile(name){
+  pdfFileName=name||'resultados.pdf';
+  document.getElementById('dzFileName').textContent=pdfFileName;
+  document.getElementById('dzFile').classList.add('show');
+  const btn=document.getElementById('processBtn');
+  btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer';
+}
+function processPdf(){
+  if(!pdfFileName){ onFile('resultados-demo.pdf'); }
+  buildReview();
+  toast('PDF procesado · revisá los datos','warn');
+  showScreen('pdfReview');
+}
+
+/* ============================================================
+   SCREEN 7: REVISIÓN DE DATOS
+============================================================ */
+function buildReview(){
+  document.getElementById('revFileName').textContent='Archivo: '+(pdfFileName||'resultados.pdf');
+  const body=document.getElementById('revBody');
+  body.innerHTML=PDF_EXTRACT.map(r=>`
+    <tr>
+      <td class="${r.flags.includes('pos')?'flag':''}"><input value="${r.pos}"></td>
+      <td class="${r.flags.includes('driver')?'flag':''}"><input value="${r.driver}"></td>
+      <td class="${r.flags.includes('team')?'flag':''}"><input value="${r.team}"></td>
+      <td class="${r.flags.includes('time')?'flag':''}"><input value="${r.time}"></td>
+      <td class="${r.flags.includes('pts')?'flag':''}"><input value="${r.pts}"></td>
+      <td><button class="rev-del" onclick="this.closest('tr').remove()">&#10005;</button></td>
+    </tr>`).join('');
+}
+function confirmImport(){
+  const rows=[...document.querySelectorAll('#revBody tr')].map(tr=>{
+    const i=tr.querySelectorAll('input');
+    return {pos:parseInt(i[0].value)||0, driver:i[1].value, team:i[2].value, time:i[3].value, pts:parseInt(i[4].value)||0};
+  });
+  RESULTS=rows;
+  STATE.view='results';
+  buildPanel();
+  showScreen('panel');
+  toast(rows.length+' resultados importados','warn');
+}
+
+/* ============================================================
+   GENERAL
+============================================================ */
+function delRow(btn){
+  const tr=btn.closest('tr');
+  tr.style.transition='.3s';tr.style.transform='translateX(30px)';tr.style.opacity='0';
+  setTimeout(()=>tr.remove(),300);
+  toast('Registro eliminado');
+}
+function toast(msg,kind){
+  const n=document.getElementById('notify');
+  const t=document.createElement('div');
+  t.className='toast'+(kind==='warn'?' warn':'');
+  t.innerHTML=`<span class="lead">&#9656;</span>${msg}`;
+  n.appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+function restart(){
+  STATE.category=null;STATE.year=null;STATE.view='results';
+  showScreen('categories');
+}
+
+setupDropzone();
+</script>
+</body>
+</html>

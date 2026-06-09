@@ -13,7 +13,7 @@ class AdminController extends Controller
     public function dashboard()
     {
         $stats = [
-            'campeonatos' => Campeonato::count(),
+            'campeonatos' => Campeonato::where('categoria_id', session('categoria_id'))->count(),
             'pilotos' => Piloto::count(),
             'circuitos' => Circuito::count(),
             'fechas' => Fecha::count(),

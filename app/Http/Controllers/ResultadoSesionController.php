@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Session;
 use App\Traits\HasSearchAndPagination;
 use App\Traits\SearchableSelectTrait;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\StoreResultadoSesionRequest;
+use App\Http\Requests\UpdateResultadoSesionRequest;
 
 class ResultadoSesionController extends Controller
 {
@@ -23,7 +25,9 @@ class ResultadoSesionController extends Controller
         $this->setupPagination();
 
         // Crear consulta base
-        $query = ResultadoSesion::query();
+        $query = ResultadoSesion::query()->whereHas('sesion.fecha', function($q) {
+            $q->where('campeonato_id', session('campeonato_id'));
+        });
 
         // Aplicar búsqueda
         $searchFields = ['piloto.nombre', 'sesion.nombre', 'sesion.fecha.nombre']; // Campos en los que buscar
@@ -37,14 +41,16 @@ class ResultadoSesionController extends Controller
                 'type' => 'select',
                 'field' => 'sesion.fecha_id',
                 'placeholder' => 'Todas las Fechas',
-                'options' => \App\Models\Fecha::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+                'options' => \App\Models\Fecha::where('campeonato_id', session('campeonato_id'))->orderBy('nombre')->pluck('nombre', 'id')->toArray()
             ],
             [
                 'key' => 'piloto_id',
                 'type' => 'select',
                 'field' => 'piloto_id',
                 'placeholder' => 'Todos los Pilotos',
-                'options' => \App\Models\Piloto::orderBy('nombre')->pluck('nombre', 'id')->toArray()
+                'options' => \App\Models\Piloto::whereHas('campeonatos', function($q) {
+                    $q->where('campeonatos.id', session('campeonato_id'));
+                })->orderBy('nombre')->pluck('nombre', 'id')->toArray()
             ],
             [
                 'key' => 'sesion_tipo',
@@ -91,14 +97,15 @@ class ResultadoSesionController extends Controller
 
     public function importForm()
     {
+        $fechas = \App\Models\Fecha::with('campeonato')->orderBy('created_at', 'desc')->get();
         $sesiones = SesionDefinicion::with('fecha')
             ->orderBy('created_at', 'desc')
             ->get();
             
-        return view('admin.resultados.import', compact('sesiones'));
+        return view('admin.resultados.import', compact('sesiones', 'fechas'));
     }
 
-    public function importPreview(Request $request)
+    public function importPreview(Request $request, \App\Services\PilotMatchingService $matchingService)
     {
         $sesion_id = $request->input('sesion_id');
         $resultados_json = json_decode($request->input('resultados_json'), true) ?? [];
@@ -107,103 +114,26 @@ class ResultadoSesionController extends Controller
         
         // Obtener todos los pilotos para el dropdown
         $pilotos = Piloto::orderBy('nombre')->get();
-        $campeonatos = \App\Models\Campeonato::orderBy('anio', 'desc')->get();
+        $campeonatos = \App\Models\Campeonato::where('categoria_id', session('categoria_id'))->orderBy('anio', 'desc')->get();
         
-        // Intentar autocompletar el piloto usando el nombre extraído (muy básico)
-        $nombresPilotos = $pilotos->pluck('id', 'nombre')->mapWithKeys(function ($item, $key) {
-            return [strtolower(trim($key)) => $item];
-        })->toArray();
-
-        foreach ($resultados_json as &$row) {
-            $nombreScan = strtolower(trim($row['nombre'] ?? ''));
-            if (empty($nombreScan)) {
-                $row['piloto_id_match'] = null;
-                continue;
-            }
-
-            // 1. Búsqueda exacta
-            if (isset($nombresPilotos[$nombreScan])) {
-                $row['piloto_id_match'] = $nombresPilotos[$nombreScan];
-            } else {
-                // 2. Búsqueda estricta por partes (Strict Intersection)
-                // El nombre escaneado "Franco Smith" NO debe coincidir con "Franco Rossi"
-                $row['piloto_id_match'] = null;
-                $parts = array_filter(explode(' ', $nombreScan), fn($p) => strlen($p) > 2);
-                
-                if (count($parts) > 0) {
-                    foreach ($nombresPilotos as $dbName => $id) {
-                        $allPartsExist = true;
-                        foreach ($parts as $p) {
-                            if (!str_contains($dbName, $p)) {
-                                $allPartsExist = false;
-                                break;
-                            }
-                        }
-
-                        if ($allPartsExist) {
-                            // Si encontramos una coincidencia donde TODAS las partes existen en el nombre de la DB
-                            $row['piloto_id_match'] = $id;
-                            break; 
-                        }
-                    }
-                }
-            }
-        }
+        $resultados_json = $matchingService->matchFromOcrData($resultados_json);
 
         return view('admin.resultados.import-preview', compact('sesion', 'resultados_json', 'pilotos', 'campeonatos'));
     }
 
-    public function storeImport(Request $request)
+    public function storeImport(Request $request, \App\Services\ResultImportService $importService)
     {
-        $sesion_id = $request->input('sesion_id');
+        $sesion_id = (string) $request->input('sesion_id');
         $items = $request->input('items', []);
 
         if (empty($items)) {
             return Redirect::route('admin.resultados.import.form')->with('error', 'No se enviaron datos para importar.');
         }
 
-        $guardados = 0;
-        foreach ($items as $item) {
-            if (empty($item['piloto_id'])) {
-                continue; // Ignorar si no seleccionaron piloto
-            }
-
-            // Convertir tiempos a decimal (segundos) o guardarlos como vienen si la DB los maneja como decimal.
-            // La BD tiene 'tiempo_total', 'mejor_tiempo', 'sector_1' como decimal. 
-            // Ojo: "1:16.389" no es decimal. Hay que parsearlo a segundos.
-            $parseTime = function($timeStr) {
-                if (empty($timeStr)) return null;
-                if (str_contains($timeStr, ':')) {
-                    $parts = explode(':', $timeStr);
-                    return ($parts[0] * 60) + (float)$parts[1];
-                }
-                return (float)$timeStr;
-            };
-
-            ResultadoSesion::updateOrCreate([
-                'sesion_id' => $sesion_id,
-                'piloto_id' => $item['piloto_id']
-            ], [
-                'posicion' => (isset($item['posicion']) && in_array(strtoupper(trim($item['posicion'])), ['NT', 'EX'])) ? null : ($item['posicion'] ?? null),
-                'vueltas' => $item['vueltas'] ?? null,
-                'tiempo_total' => $parseTime($item['tiempo_total'] ?? null),
-                'mejor_tiempo' => $parseTime($item['mejor_tiempo'] ?? null),
-                'diferencia_primero' => $parseTime($item['diferencia'] ?? null),
-                'sector_1' => $parseTime($item['sector_1'] ?? null),
-                'sector_2' => $parseTime($item['sector_2'] ?? null),
-                'sector_3' => $parseTime($item['sector_3'] ?? null),
-                'excluido' => (isset($item['posicion']) && strtoupper(trim($item['posicion'])) === 'EX') ? true : false,
-            ]);
-            $guardados++;
-        }
+        $guardados = $importService->importResults($sesion_id, $items);
 
         $sesion = SesionDefinicion::find($sesion_id);
         
-        // Sincronizar puntos de la fecha después de la importación
-        if ($sesion) {
-            (new \App\Services\StandingsService())->syncFechaPuntos($sesion->fecha);
-        }
-
         Session::flash('success', "Se importaron/actualizaron $guardados resultados exitosamente.");
         return Redirect::route('admin.resultados.index', ['sesion_tipo' => $sesion->tipo]);
     }
@@ -273,89 +203,9 @@ class ResultadoSesionController extends Controller
     /**
      * Store a newly created session result in storage.
      */
-    public function store(Request $request)
+    public function store(StoreResultadoSesionRequest $request)
     {
-        $parseTime = function($timeStr) {
-            if (empty($timeStr)) return null;
-            if (str_contains($timeStr, ':')) {
-                $parts = explode(':', $timeStr);
-                return ($parts[0] * 60) + (float)$parts[1];
-            }
-            return (float)$timeStr;
-        };
-
-        $request->merge([
-            'tiempo_total' => $parseTime($request->input('tiempo_total')),
-            'mejor_tiempo' => $parseTime($request->input('mejor_tiempo')),
-            'diferencia_primero' => $parseTime($request->input('diferencia_primero')),
-            'sector_1' => $parseTime($request->input('sector_1')),
-            'sector_2' => $parseTime($request->input('sector_2')),
-            'sector_3' => $parseTime($request->input('sector_3')),
-        ]);
-
-        $validated = $request->validate([
-            'sesion_id' => 'required|exists:sesiones_definicion,id',
-            'piloto_id' => [
-                'required',
-                'exists:pilotos,id',
-                Rule::unique('resultados_sesion')->where(function ($query) use ($request) {
-                    return $query->where('sesion_id', $request->sesion_id);
-                }),
-            ],
-            'posicion' => 'required|integer|min:1',
-            'puntos' => 'nullable|integer|min:0',
-            'vueltas' => 'nullable|integer|min:0',
-            'tiempo_total' => 'nullable|numeric|min:0',
-            'mejor_tiempo' => 'nullable|numeric|min:0',
-            'diferencia_primero' => 'nullable|numeric|min:0',
-            'sector_1' => 'nullable|numeric|min:0',
-            'sector_2' => 'nullable|numeric|min:0',
-            'sector_3' => 'nullable|numeric|min:0',
-            'excluido' => 'boolean',
-            'presente' => 'boolean',
-            'observaciones' => 'nullable|string|max:1000',
-        ], [
-            'sesion_id.required' => 'Debe seleccionar una sesión.',
-            'sesion_id.exists' => 'La sesión seleccionada no es válida.',
-
-            'piloto_id.required' => 'Debe seleccionar un piloto.',
-            'piloto_id.exists' => 'El piloto seleccionado no es válido.',
-            'piloto_id.unique' => 'Ya existe un resultado para este piloto en esta sesión.',
-
-            'posicion.required' => 'Debe ingresar la posición del piloto.',
-            'posicion.integer' => 'La posición debe ser un número entero.',
-            'posicion.min' => 'La posición mínima permitida es 1.',
-
-            'puntos.integer' => 'Los puntos deben ser un número entero.',
-            'puntos.min' => 'Los puntos no pueden ser negativos.',
-
-            'vueltas.integer' => 'La cantidad de vueltas debe ser un número entero.',
-            'vueltas.min' => 'Las vueltas no pueden ser negativas.',
-
-            'tiempo_total.numeric' => 'El tiempo total debe ser un número.',
-            'tiempo_total.min' => 'El tiempo total no puede ser negativo.',
-
-            'mejor_tiempo.numeric' => 'El mejor tiempo debe ser un número.',
-            'mejor_tiempo.min' => 'El mejor tiempo no puede ser negativo.',
-
-            'diferencia_primero.numeric' => 'La diferencia con el primero debe ser un número.',
-            'diferencia_primero.min' => 'La diferencia no puede ser negativa.',
-
-            'sector_1.numeric' => 'El tiempo del sector 1 debe ser un número.',
-            'sector_1.min' => 'El tiempo del sector 1 no puede ser negativo.',
-
-            'sector_2.numeric' => 'El tiempo del sector 2 debe ser un número.',
-            'sector_2.min' => 'El tiempo del sector 2 no puede ser negativo.',
-
-            'sector_3.numeric' => 'El tiempo del sector 3 debe ser un número.',
-            'sector_3.min' => 'El tiempo del sector 3 no puede ser negativo.',
-
-            'excluido.boolean' => 'El campo "excluido" debe ser verdadero o falso.',
-            'presente.boolean' => 'El campo "presente" debe ser verdadero o falso.',
-
-            'observaciones.string' => 'Las observaciones deben ser un texto válido.',
-            'observaciones.max' => 'Las observaciones no pueden superar los 1000 caracteres.',
-        ]);
+        $validated = $request->validated();
 
         $resultado = ResultadoSesion::create($validated);
         
@@ -389,42 +239,9 @@ class ResultadoSesionController extends Controller
     /**
      * Update the specified session result in storage.
      */
-    public function update(Request $request, ResultadoSesion $resultado)
+    public function update(UpdateResultadoSesionRequest $request, ResultadoSesion $resultado)
     {
-        $parseTime = function($timeStr) {
-            if (empty($timeStr)) return null;
-            if (str_contains($timeStr, ':')) {
-                $parts = explode(':', $timeStr);
-                return ($parts[0] * 60) + (float)$parts[1];
-            }
-            return (float)$timeStr;
-        };
-
-        $request->merge([
-            'tiempo_total' => $parseTime($request->input('tiempo_total')),
-            'mejor_tiempo' => $parseTime($request->input('mejor_tiempo')),
-            'diferencia_primero' => $parseTime($request->input('diferencia_primero')),
-            'sector_1' => $parseTime($request->input('sector_1')),
-            'sector_2' => $parseTime($request->input('sector_2')),
-            'sector_3' => $parseTime($request->input('sector_3')),
-        ]);
-
-        $validated = $request->validate([
-            'sesion_id' => 'required|exists:sesiones_definicion,id',
-            'piloto_id' => 'required|exists:pilotos,id',
-            'posicion' => 'required|integer|min:1',
-            'puntos' => 'nullable|integer|min:0',
-            'vueltas' => 'nullable|integer|min:0',
-            'tiempo_total' => 'nullable|numeric|min:0',
-            'mejor_tiempo' => 'nullable|numeric|min:0',
-            'diferencia_primero' => 'nullable|numeric|min:0',
-            'sector_1' => 'nullable|numeric|min:0',
-            'sector_2' => 'nullable|numeric|min:0',
-            'sector_3' => 'nullable|numeric|min:0',
-            'excluido' => 'boolean',
-            'presente' => 'boolean',
-            'observaciones' => 'nullable|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
         $resultado->update($validated);
         

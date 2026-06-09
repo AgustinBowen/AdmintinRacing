@@ -1,32 +1,35 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AdmintínRacing</title>
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>AdmintínRacing - Login</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
     <!-- Custom CSS -->
-    <link href="{{ asset('css/auth.css') }}" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link href="{{ asset('css/admintin.css') }}" rel="stylesheet">
+    
+    <style>
+      body { background: var(--black); }
+    </style>
 </head>
-<body data-theme="light">
-    <div class="auth-container fade-in">
-        <!-- Brand -->
-        <div class="auth-brand">
-            <div class="auth-brand-icon">
-                <i class="fas fa-flag-checkered"></i>
-            </div>
-            <h1>AdmintínRacing</h1>
-            <p>Panel de Administración</p>
-        </div>
-        <!-- Auth Card -->
-        <div class="auth-card">
+<body>
+    <div class="bg-texture"></div>
+
+    <section class="screen active" id="login">
+        <div class="login-wrap">
+            <h1 class="login-brand">Admin<span>Tin</span></h1>
+            <p class="login-sub">Sistema de Gestión de Campeonatos</p>
+            <div class="checker-strip dim login-strip"></div>
+            
             @yield('content')
+            
+            <div class="login-foot">Acceso restringido · Panel de administración</div>
         </div>
-    </div>
+    </section>
 </body>
 </html>

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.form')
 
 @section('title', 'Editar Piloto')
 
@@ -31,17 +31,6 @@
                     'placeholder' => 'Ej: Argentina',
                     'value' => $piloto->pais,
                     'width' => 4
-                ],
-                [
-                    'name' => 'campeonato_id',
-                    'label' => 'Asignar a Campeonato',
-                    'type' => 'select',
-                    'options' => $campeonatos,
-                    'optionValue' => 'id',
-                    'optionLabel' => 'nombre',
-                    'value' => $campeonatoActual?->id,
-                    'width' => 8,
-                    'help' => 'Selecciona un campeonato para vincular al piloto o actualizar su número.'
                 ],
                 [
                     'name' => 'numero_auto',

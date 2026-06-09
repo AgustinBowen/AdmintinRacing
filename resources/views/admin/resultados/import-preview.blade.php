@@ -1,19 +1,16 @@
 @extends('layouts.admin')
-
 @section('title', 'Vista Previa Importación OCR/PDF')
 
 @section('content')
-@include('components.admin.page-header', [
-    'title' => 'Vista Previa de Resultados',
-    'subtitle' => 'Sesión: ' . $sesion->tipo . ' - ' . ($sesion->fecha->nombre ?? 'Sin fecha')
-])
+<div class="view-head">
+    <h1>VISTA PREVIA DE RESULTADOS <span class="lap">SESIÓN: {{ strtoupper($sesion->tipo) }} - {{ strtoupper($sesion->fecha->nombre ?? 'SIN FECHA') }}</span></h1>
+</div>
 
 @php
     $meta = [];
     $hasSectors = true; 
     $hasTiempoTotal = true;
 
-    // Detectar si el último elemento es metadata
     if(count($resultados_json) > 0 && isset($resultados_json[count($resultados_json)-1]['_meta'])) {
         $metaObj = array_pop($resultados_json);
         $meta = $metaObj['_meta'];
@@ -22,242 +19,211 @@
     }
 @endphp
 
-<div class="card-modern">
-    <div class="card-header-modern d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 fw-semibold">
-            Revisar Resultados de Planilla/OCR
-        </h5>
-        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
-            <i class="fas fa-magic me-1"></i> Detectados: {{ count($resultados_json) }}
-        </span>
+<div style="margin-bottom: 24px;">
+    <div style="font-family:var(--font-sans); font-size:14px; font-weight:600; margin-bottom:8px;">Revisar Resultados de Planilla/OCR</div>
+    <div style="display:inline-block; background:var(--carbon); border:1px solid var(--line); padding:4px 12px; font-size:12px; font-family:var(--font-display); letter-spacing:1px;"><i class="fas fa-magic" style="margin-right:6px;"></i> DETECTADOS: {{ count($resultados_json) }}</div>
+</div>
+
+<div style="background:var(--carbon-2); border-left:3px solid var(--racing); padding:16px; margin-bottom:24px; font-family:var(--font-sans); font-size:14px; color:var(--white);">
+    <i class="fas fa-exclamation-triangle" style="color:var(--racing); margin-right:8px;"></i>
+    <strong>Revisa con atención:</strong> La herramienta intenta asignar cada nombre escaneado a un "Piloto del Sistema". Verifica que cada fila esté asignada al piloto correcto y que los tiempos sean exactos.
+</div>
+
+<form action="{{ route('admin.resultados.import.store') }}" method="POST">
+    @csrf
+    <input type="hidden" name="sesion_id" value="{{ $sesion->id }}">
+
+    <div class="tbl-wrap" style="border:none; box-shadow:none; background:transparent;">
+        <table class="preview-tbl">
+            <thead>
+                <tr>
+                    <th width="5%">POS</th>
+                    <th width="5%">AUTO</th>
+                    <th width="20%">NOMBRE PDF/OCR</th>
+                    <th width="20%">VINCULAR PILOTO *</th>
+                    @if($hasTiempoTotal)
+                        <th width="10%">TIEMPO TOTAL</th>
+                    @endif
+                    <th width="10%">MEJOR TM</th>
+                    <th width="10%">DIF</th>
+                    <th width="5%">VTAS</th>
+                    @if($hasSectors)
+                        <th width="8%">S1</th>
+                        <th width="8%">S2</th>
+                        <th width="8%">S3</th>
+                    @endif
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($resultados_json as $index => $row)
+                <tr>
+                    <td style="font-weight:700;">
+                        {{ $row['posicion'] ?? '' }}
+                        <input type="hidden" name="items[{{ $index }}][posicion]" value="{{ $row['posicion'] ?? '' }}">
+                    </td>
+                    <td>
+                        <span style="background:var(--carbon); border:1px solid var(--line); padding:4px 8px; font-size:12px;">{{ $row['auto'] ?? '' }}</span>
+                    </td>
+                    <td style="color:var(--gray);">{{ $row['nombre'] ?? '' }}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div id="match-icon-{{ $index }}">
+                                @if(empty($row['piloto_id_match']))
+                                    <i class="fas fa-exclamation-triangle" style="color:var(--racing);" title="No se encontró coincidencia exacta"></i>
+                                @else
+                                    <i class="fas fa-check-circle" style="color:#22c55e;" title="Coincidencia encontrada"></i>
+                                @endif
+                            </div>
+                            <select name="items[{{ $index }}][piloto_id]" class="pilot-selector" required onchange="updateMatchIcon(this, {{ $index }})">
+                                <option value="">-- Buscar Piloto --</option>
+                                @foreach($pilotos as $p)
+                                    <option value="{{ $p->id }}" {{ ($row['piloto_id_match'] ?? null) === $p->id ? 'selected' : '' }}>
+                                        {{ $p->nombre }} 
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="add-btn" title="Crear nuevo piloto" onclick="quickCreatePilot({{ $index }}, '{{ addslashes($row['nombre'] ?? '') }}', '{{ $row['auto'] ?? '' }}')">
+                                <i class="fas fa-plus-circle"></i>
+                            </button>
+                        </div>
+                    </td>
+                    @if($hasTiempoTotal)
+                        <td>
+                            <input type="text" name="items[{{ $index }}][tiempo_total]" class="invisible-input" value="{{ $row['tiempo_total'] ?? '' }}" placeholder="1:XX.XXX">
+                        </td>
+                    @else
+                        <input type="hidden" name="items[{{ $index }}][tiempo_total]" value="">
+                    @endif
+                    
+                    <td>
+                        <input type="text" name="items[{{ $index }}][mejor_tiempo]" class="invisible-input" value="{{ $row['mejor_tiempo'] ?? '' }}" placeholder="1:XX.XXX">
+                    </td>
+                    <td>
+                        <input type="text" name="items[{{ $index }}][diferencia]" class="invisible-input" value="{{ $row['diferencia'] ?? '' }}" placeholder="0.XXX">
+                    </td>
+                    <td>
+                        <input type="number" name="items[{{ $index }}][vueltas]" class="invisible-input" value="{{ $row['vueltas'] ?? '' }}">
+                    </td>
+                    
+                    @if($hasSectors)
+                        <td>
+                            <input type="text" name="items[{{ $index }}][sector_1]" class="invisible-input" value="{{ $row['sector_1'] ?? '' }}" placeholder="2X.XXX">
+                        </td>
+                        <td>
+                            <input type="text" name="items[{{ $index }}][sector_2]" class="invisible-input" value="{{ $row['sector_2'] ?? '' }}" placeholder="2X.XXX">
+                        </td>
+                        <td>
+                            <input type="text" name="items[{{ $index }}][sector_3]" class="invisible-input" value="{{ $row['sector_3'] ?? '' }}" placeholder="2X.XXX">
+                        </td>
+                    @else
+                        <input type="hidden" name="items[{{ $index }}][sector_1]" value="">
+                        <input type="hidden" name="items[{{ $index }}][sector_2]" value="">
+                        <input type="hidden" name="items[{{ $index }}][sector_3]" value="">
+                    @endif
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="{{ 6 + ($hasTiempoTotal ? 1 : 0) + ($hasSectors ? 3 : 0) }}" style="text-align:center; padding:30px; color:var(--gray);">No se extrajeron datos válidos. Intentá con otro archivo.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-    
-    <div class="card-body-modern">
-        <div class="alert alert-warning border-0 rounded-4">
-            <i class="fas fa-exclamation-triangle me-2"></i> <strong>Revisa con atención:</strong> La herramienta intenta asignar cada nombre escaneado a un "Piloto del Sistema". Verifica que cada fila esté asignada al piloto correcto y que los tiempos sean exactos.
+
+    <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line); display:flex; gap:12px; justify-content:flex-end;">
+        <a href="{{ route('admin.resultados.import.form') }}" class="btn ghost">Cancelar</a>
+        <button type="submit" class="btn" style="background:var(--white); color:var(--black);" {{ count($resultados_json) == 0 ? 'disabled' : '' }}>
+            CONFIRMAR Y GUARDAR RESULTADOS
+        </button>
+    </div>
+</form>
+
+<style>
+.preview-tbl { width: 100%; border-collapse: collapse; }
+.preview-tbl thead th { background: var(--white); color: var(--black); font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 12px 16px; text-transform: uppercase; text-align: left; }
+.preview-tbl tbody td { border-bottom: 1px solid var(--line); padding: 12px 16px; font-family: var(--font-sans); font-size: 13px; color: var(--bone); vertical-align: middle; }
+.preview-tbl tbody tr { background: #131313; transition: 0.2s; }
+.preview-tbl tbody tr:nth-child(even) { background: #181818; }
+.preview-tbl tbody tr:hover { background: #1f1f1f; }
+
+.pilot-selector { background: transparent; border: 1px solid var(--gray); color: var(--white); font-family: var(--font-sans); font-size: 13px; padding: 6px 12px; border-radius: 4px; width: 180px; outline: none; }
+.pilot-selector:focus { border-color: var(--white); }
+.pilot-selector option { background: var(--carbon); color: var(--white); }
+
+.add-btn { background: var(--white); border: none; width: 28px; height: 28px; border-radius: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+.add-btn i { color: var(--black); font-size: 14px; }
+.add-btn:hover { background: var(--gray); }
+
+.invisible-input { background: transparent; border: none; color: var(--gray); font-family: var(--font-sans); font-size: 13px; width: 100%; min-width: 60px; outline: none; transition: 0.2s; }
+.invisible-input:focus { color: var(--white); border-bottom: 1px solid var(--gray); }
+
+/* Modal Quick Create */
+.qc-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:none; align-items:center; justify-content:center; }
+.qc-modal { background: var(--black); border: 1px solid var(--line); width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+.qc-title { font-family: var(--font-display); font-size: 24px; color: var(--white); margin-bottom: 8px; text-transform: uppercase; }
+.qc-sub { font-family: var(--font-sans); font-size: 13px; color: var(--gray); margin-bottom: 24px; }
+</style>
+
+<div class="qc-overlay" id="quickCreateModal">
+    <div class="qc-modal">
+        <div class="qc-title">Crear Nuevo Piloto</div>
+        <div class="qc-sub">Ingresa el nombre del piloto para crearlo en el sistema y vincularlo a este resultado.</div>
+        
+        <div class="fgrid" style="display:grid; grid-template-columns:1fr; gap:16px;">
+            <div class="field">
+                <label>Nombre Completo *</label>
+                <input type="text" id="new_piloto_nombre" placeholder="Ej: Santiago Villar">
+                <div id="quick-create-error" style="color:var(--racing); font-size:12px; margin-top:4px; display:none;"></div>
+            </div>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+                <div class="field">
+                    <label>Campeonato</label>
+                    <select id="new_piloto_campeonato">
+                        <option value="">-- No asignar --</option>
+                        @foreach($campeonatos as $c)
+                            <option value="{{ $c->id }}" {{ $c->id == ($sesion->fecha->campeonato_id ?? '') ? 'selected' : '' }}>
+                                {{ $c->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="field">
+                    <label>N° Auto</label>
+                    <input type="number" id="new_piloto_numero" placeholder="0">
+                </div>
+            </div>
         </div>
 
-        <form action="{{ route('admin.resultados.import.store') }}" method="POST">
-            @csrf
-            <input type="hidden" name="sesion_id" value="{{ $sesion->id }}">
-
-            <div class="table-responsive">
-                <table class="table-modern table-modern-hover">
-                    <thead>
-                        <tr>
-                            <th style="width: 5%">Pos</th>
-                            <th style="width: 5%">Auto</th>
-                            <th style="width: 15%">Nombre PDF/OCR</th>
-                            <th style="width: 15%">Vincular Piloto *</th>
-                            @if($hasTiempoTotal)
-                                <th style="width: 10%">Tiempo Total</th>
-                            @endif
-                            <th style="width: 10%">Mejor Tm</th>
-                            <th style="width: 10%">Dif</th>
-                            <th style="width: 5%">Vtas</th>
-                            @if($hasSectors)
-                                <th style="width: 8%">S1</th>
-                                <th style="width: 8%">S2</th>
-                                <th style="width: 8%">S3</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($resultados_json as $index => $row)
-                        <tr>
-                            <td>
-                                {{ $row['posicion'] ?? '' }}
-                                <input type="hidden" name="items[{{ $index }}][posicion]" value="{{ $row['posicion'] ?? '' }}">
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary-subtle text-secondary">{{ $row['auto'] ?? '' }}</span>
-                            </td>
-                            <td>{{ $row['nombre'] ?? '' }}</td>
-                            <td>
-                                <div class="d-flex align-items-center gap-1">
-                                    <div id="match-icon-{{ $index }}">
-                                        @if(empty($row['piloto_id_match']))
-                                            <i class="fas fa-exclamation-triangle text-warning" title="No se encontró coincidencia exacta"></i>
-                                        @else
-                                            <i class="fas fa-check-circle text-success" title="Coincidencia encontrada"></i>
-                                        @endif
-                                    </div>
-                                    <select name="items[{{ $index }}][piloto_id]" class="input-modern form-select-sm pilot-selector" required style="padding: 0.25rem 0.5rem; font-size: 0.875rem; min-width: 140px;" onchange="updateMatchIcon(this, {{ $index }})">
-                                        <option value="">-- Buscar Piloto --</option>
-                                        @foreach($pilotos as $p)
-                                            <option value="{{ $p->id }}" {{ ($row['piloto_id_match'] ?? null) === $p->id ? 'selected' : '' }}>
-                                                {{ $p->nombre }} 
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <button type="button" class="btn btn-sm btn-outline-primary p-1 border-0" title="Crear nuevo piloto" onclick="quickCreatePilot({{ $index }}, '{{ addslashes($row['nombre'] ?? '') }}', '{{ $row['auto'] ?? '' }}')">
-                                        <i class="fas fa-plus-circle"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            @if($hasTiempoTotal)
-                                <td>
-                                    <input type="text" name="items[{{ $index }}][tiempo_total]" class="input-modern px-2 py-1" value="{{ $row['tiempo_total'] ?? '' }}" placeholder="1:XX.XXX">
-                                </td>
-                            @else
-                                <input type="hidden" name="items[{{ $index }}][tiempo_total]" value="">
-                            @endif
-                            
-                            <td>
-                                <input type="text" name="items[{{ $index }}][mejor_tiempo]" class="input-modern px-2 py-1" value="{{ $row['mejor_tiempo'] ?? '' }}" placeholder="1:XX.XXX">
-                            </td>
-                            <td>
-                                <input type="text" name="items[{{ $index }}][diferencia]" class="input-modern px-2 py-1" value="{{ $row['diferencia'] ?? '' }}" placeholder="0.XXX">
-                            </td>
-                            <td>
-                                <input type="number" name="items[{{ $index }}][vueltas]" class="input-modern px-2 py-1" value="{{ $row['vueltas'] ?? '' }}">
-                            </td>
-                            
-                            @if($hasSectors)
-                                <td>
-                                    <input type="text" name="items[{{ $index }}][sector_1]" class="input-modern px-2 py-1" value="{{ $row['sector_1'] ?? '' }}" placeholder="2X.XXX">
-                                </td>
-                                <td>
-                                    <input type="text" name="items[{{ $index }}][sector_2]" class="input-modern px-2 py-1" value="{{ $row['sector_2'] ?? '' }}" placeholder="2X.XXX">
-                                </td>
-                                <td>
-                                    <input type="text" name="items[{{ $index }}][sector_3]" class="input-modern px-2 py-1" value="{{ $row['sector_3'] ?? '' }}" placeholder="2X.XXX">
-                                </td>
-                            @else
-                                <input type="hidden" name="items[{{ $index }}][sector_1]" value="">
-                                <input type="hidden" name="items[{{ $index }}][sector_2]" value="">
-                                <input type="hidden" name="items[{{ $index }}][sector_3]" value="">
-                            @endif
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="{{ 6 + ($hasTiempoTotal ? 1 : 0) + ($hasSectors ? 3 : 0) }}" class="text-center py-4 text-muted">No se extrajeron datos válidos. Intentá con otro archivo.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="form-actions mt-4 pt-3 border-top">
-                <button type="submit" class="btn-modern btn-primary-modern" {{ count($resultados_json) == 0 ? 'disabled' : '' }}>
-                    <i class="fas fa-save me-2"></i> Confirmar y Guardar Resultados
-                </button>
-                <a href="{{ route('admin.resultados.import.form') }}" class="btn-modern btn-secondary-modern">
-                    <i class="fas fa-arrow-left me-2"></i> Volver e Intentar de Nuevo
-                </a>
-            </div>
-        </form>
+        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn ghost" onclick="document.getElementById('quickCreateModal').style.display='none'">Cancelar</button>
+            <button class="btn" id="confirmQuickCreate" style="background:var(--white); color:var(--black);">Crear y Vincular</button>
+        </div>
     </div>
 </div>
 
-<style>
-/* Ajustes finos para la tabla editable */
-.table-responsive {
-    cursor: grab;
-    overflow-x: auto;
-}
-.table-responsive.active-drag {
-    cursor: grabbing;
-}
-.table-modern th, .table-modern td {
-    vertical-align: middle;
-    white-space: nowrap;
-}
-.table-modern .input-modern {
-    background: transparent;
-    border: 1px solid transparent;
-    border-bottom: 1px solid hsl(var(--border));
-    border-radius: 0;
-    transition: all 0.2s;
-    text-align: center;
-    width: 100%;
-    min-width: 80px;
-}
-.table-modern .input-modern:focus {
-    background: hsl(var(--background));
-    border-color: hsl(var(--primary));
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-.table-modern select.input-modern {
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.375rem;
-    text-align: left;
-    min-width: 150px;
-}
-</style>
-
 @push('scripts')
 <script>
-    // Lógica para drag-to-scroll en la tabla
-    const slider = document.querySelector('.table-responsive');
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    if(slider) {
-        slider.addEventListener('mousedown', (e) => {
-            // Ignorar si hace click en un input, boton o select (interactuando con form)
-            if (['INPUT', 'SELECT', 'BUTTON', 'A', 'I', 'LABEL', 'OPTION'].includes(e.target.tagName.toUpperCase())) return;
-            
-            isDown = true;
-            slider.classList.add('active-drag');
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
-        });
-        
-        slider.addEventListener('mouseleave', () => {
-            isDown = false;
-            slider.classList.remove('active-drag');
-        });
-        
-        slider.addEventListener('mouseup', () => {
-            isDown = false;
-            slider.classList.remove('active-drag');
-        });
-        
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 1.5; 
-            slider.scrollLeft = scrollLeft - walk;
-        });
-    }
-
     function updateMatchIcon(select, index) {
         const iconDiv = document.getElementById(`match-icon-${index}`);
         if (!iconDiv) return;
         
         if (select.value === '') {
-            iconDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-warning" title="Seleccione un piloto"></i>';
+            iconDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--racing);" title="Seleccione un piloto"></i>';
         } else {
-            iconDiv.innerHTML = '<i class="fas fa-check-circle text-success" title="Piloto vinculado"></i>';
+            iconDiv.innerHTML = '<i class="fas fa-check-circle" style="color:#22c55e;" title="Piloto vinculado"></i>';
         }
     }
 
     let currentQuickCreateIndex = null;
-    let quickCreateModalObj = null;
-
-    // Inicializar el modal cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-        quickCreateModalObj = new bootstrap.Modal(document.getElementById('quickCreatePilotModal'));
-    });
 
     function quickCreatePilot(index, suggestedName, suggestedNumber = null) {
         currentQuickCreateIndex = index;
-        const nameInput = document.getElementById('new_piloto_nombre');
-        const numberInput = document.getElementById('new_piloto_numero');
-        const errorDiv = document.getElementById('quick-create-error');
+        document.getElementById('new_piloto_nombre').value = suggestedName;
+        document.getElementById('new_piloto_numero').value = suggestedNumber || '';
+        document.getElementById('quick-create-error').style.display = 'none';
         
-        nameInput.value = suggestedName;
-        numberInput.value = suggestedNumber || '';
-        errorDiv.classList.add('d-none');
-        
-        if (quickCreateModalObj) {
-            quickCreateModalObj.show();
-            // Focus input after modal is shown
-            setTimeout(() => nameInput.focus(), 500);
-        }
+        document.getElementById('quickCreateModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('new_piloto_nombre').focus(), 100);
     }
 
     document.getElementById('confirmQuickCreate').addEventListener('click', async function() {
@@ -272,12 +238,12 @@
         
         if (!name) {
             errorDiv.textContent = "El nombre es obligatorio.";
-            errorDiv.classList.remove('d-none');
+            errorDiv.style.display = 'block';
             return;
         }
 
         this.disabled = true;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Creando...';
+        this.innerHTML = 'Creando...';
 
         try {
             const response = await fetch('{{ route("admin.pilotos.quick-store") }}', {
@@ -298,83 +264,32 @@
 
             if (!response.ok) {
                 errorDiv.textContent = data.message || "Error al crear piloto.";
-                errorDiv.classList.remove('d-none');
+                errorDiv.style.display = 'block';
                 this.disabled = false;
-                this.innerHTML = '<i class="fas fa-save me-1"></i> Crear y Vincular';
+                this.innerHTML = 'Crear y Vincular';
                 return;
             }
 
-            // Agregar el nuevo piloto a TODOS los selects de la página
             const selectors = document.querySelectorAll('.pilot-selector');
             selectors.forEach(sel => {
                 const option = new Option(data.nombre, data.id);
                 sel.add(option);
             });
 
-            // Seleccionarlo para la fila actual
             const currentSelector = document.querySelectorAll('.pilot-selector')[currentQuickCreateIndex];
             currentSelector.value = data.id;
             updateMatchIcon(currentSelector, currentQuickCreateIndex);
 
-            if (quickCreateModalObj) {
-                quickCreateModalObj.hide();
-            }
+            document.getElementById('quickCreateModal').style.display = 'none';
 
         } catch (error) {
             console.error(error);
             alert("Ocurrió un error en la conexión.");
         } finally {
             this.disabled = false;
-            this.innerHTML = '<i class="fas fa-save me-1"></i> Crear y Vincular';
+            this.innerHTML = 'Crear y Vincular';
         }
     });
 </script>
 @endpush
-
-<!-- Quick Create Pilot Modal -->
-<div class="modal fade" id="quickCreatePilotModal" tabindex="-1" aria-labelledby="quickCreatePilotModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-modern" style="border: none;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="quickCreatePilotModalLabel">
-                    <i class="fas fa-helmet-safety me-2 text-primary"></i> Crear Nuevo Piloto
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small mb-4">Ingresa el nombre del piloto para crearlo en el sistema y vincularlo a este resultado.</p>
-                
-                <div class="mb-3">
-                    <label for="new_piloto_nombre" class="form-label fw-medium">Nombre Completo *</label>
-                    <input type="text" id="new_piloto_nombre" class="input-modern" placeholder="Ej: Santiago Villar" style="text-align: left;">
-                    <div id="quick-create-error" class="text-danger small mt-1 d-none"></div>
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-md-8">
-                        <label for="new_piloto_campeonato" class="form-label fw-medium">Asignar a Campeonato</label>
-                        <select id="new_piloto_campeonato" class="input-modern form-select" style="text-align: left;">
-                            <option value="">-- No asignar --</option>
-                            @foreach($campeonatos as $c)
-                                <option value="{{ $c->id }}" {{ $c->id == ($sesion->fecha->campeonato_id ?? '') ? 'selected' : '' }}>
-                                    {{ $c->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="new_piloto_numero" class="form-label fw-medium">N° Auto</label>
-                        <input type="number" id="new_piloto_numero" class="input-modern" placeholder="0" style="text-align: left;">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="confirmQuickCreate" class="btn-modern btn-primary-modern">
-                    <i class="fas fa-save me-1"></i> Crear y Vincular
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
