@@ -6,7 +6,7 @@
         </h5>
         @if(collect($filters)->some(function($filter) { return !empty(request($filter['key'])); }))
             <button type="button" id="clearFilters" class="btn ghost" style="padding: 6px 12px; font-size: 12px;">
-                <i class="fas fa-times"></i> Limpiar filtros
+                <x-heroicon-o-x-mark style="width:1em; height:1em; vertical-align:-0.125em;" /> Limpiar filtros
             </button>
         @endif
     </div>
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 emptyDiv.style.padding = '40px';
                 emptyDiv.innerHTML = `
                     <div style="margin-bottom: 16px;">
-                        <i class="fas fa-inbox" style="font-size: 32px; color: var(--gray);"></i>
+                        <x-heroicon-o-inbox style="width:1em; height:1em; vertical-align:-0.125em; font-size: 32px; color: var(--gray);" />
                     </div>
                     <h6 style="color: var(--white); font-family: var(--font-oswald); font-size: 18px; text-transform: uppercase;">No se encontraron resultados</h6>
                     <p style="margin: 0; color: var(--gray); font-size: 14px;">

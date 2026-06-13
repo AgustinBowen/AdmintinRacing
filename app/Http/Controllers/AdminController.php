@@ -13,12 +13,22 @@ class AdminController extends Controller
     public function dashboard()
     {
         $stats = [
-            'campeonatos' => Campeonato::where('categoria_id', session('categoria_id'))->count(),
-            'pilotos' => Piloto::count(),
-            'circuitos' => Circuito::count(),
-            'fechas' => Fecha::count(),
+            'campeonatos' => \App\Models\Campeonato::where('categoria_id', session('categoria_id'))->count(),
+            'pilotos' => \App\Models\Piloto::count(),
+            'circuitos' => \App\Models\Circuito::count(),
+            'fechas' => \App\Models\Fecha::count(),
         ];
 
-        return view('admin.dashboard', compact('stats'));
+        $top5 = [];
+        $campeonatoId = session('campeonato_id');
+        if ($campeonatoId) {
+            $top5 = \App\Models\PosicionCampeonato::with('piloto')
+                ->where('campeonato_id', $campeonatoId)
+                ->orderByDesc('puntos_totales')
+                ->take(5)
+                ->get();
+        }
+
+        return view('admin.dashboard', compact('stats', 'top5'));
     }
 }

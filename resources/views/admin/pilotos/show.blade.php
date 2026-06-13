@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ver Piloto')
+@section('title', 'Pilotos')
 
 @section('content')
     @include('components.admin.show', [
@@ -11,14 +11,14 @@
                 'type' => 'text',
                 'value' => $piloto->nombre,
                 'width' => 8,
-                'icon' => 'fas fa-user'
+                'icon' => 'user'
             ],
             [
                 'label' => 'País',
                 'type' => 'text',
                 'value' => $piloto->pais,
                 'width' => 4,
-                'icon' => 'fas fa-flag'
+                'icon' => 'flag'
             ],
         ],
         'actions' => [
@@ -27,12 +27,12 @@
                 'label' => 'Editar',
                 'route' => route('admin.pilotos.edit', $piloto),
                 'class' => 'btn-primary-modern',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'btn-destructive-modern',
                 'data' => [
                     'bs-toggle' => 'modal',
@@ -46,7 +46,7 @@
                 'label' => 'Volver a la lista',
                 'route' => route('admin.pilotos.index'),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-arrow-left'
+                'icon' => 'arrow-left'
             ]
         ]
     ])

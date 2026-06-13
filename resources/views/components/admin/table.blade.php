@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-between align-items-center mb-3" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:14px; flex-wrap:wrap;">
     <div class="search-box" style="width: min(320px, 46vw);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <x-heroicon-o-magnifying-glass />
         <input type="text" id="searchInput" placeholder="Buscar..." autocomplete="off" value="{{ request('search') }}">
     </div>
     
@@ -11,7 +11,7 @@
         @if(isset($extraButtons))
             @foreach($extraButtons as $btn)
             <a href="{{ $btn['url'] }}" class="btn {{ str_replace('btn-secondary-modern', 'ghost', $btn['class'] ?? 'ghost') }}">
-                @if(isset($btn['icon'])) <i class="{{ $btn['icon'] }} me-1"></i> @endif
+                @if(isset($btn['icon'])) <x-dynamic-component :component="'heroicon-o-' . ($btn['icon'])" style="width:1em; height:1em; vertical-align:-0.125em;  margin-right: 0.25rem;" /> @endif
                 {{ $btn['text'] }}
             </a>
             @endforeach

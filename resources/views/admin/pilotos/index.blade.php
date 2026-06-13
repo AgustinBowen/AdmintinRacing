@@ -4,7 +4,6 @@
 @section('content')
 @include('components.admin.page-header', [
     'title' => 'Gestión de Pilotos',
-    'subtitle' => 'Administra todos los pilotos registrados'
 ])
 
 @include('components.admin.table', [
@@ -17,7 +16,7 @@
         [
             'text' => 'Importar de PDF',
             'url' => route('admin.pilotos.import.form'),
-            'icon' => 'fas fa-file-pdf',
+            'icon' => 'document-text',
             'class' => 'ghost mx-2'
         ]
     ],

@@ -209,6 +209,6 @@ class HorarioController extends Controller
     {
         $horario->delete();
         Session::flash('success', 'Horario eliminado exitosamente.');
-        return Redirect::route('admin.horarios.index');
+        return redirect()->back();
     }
 }

@@ -11,7 +11,7 @@
         @include('components.admin.form', [
             'title' => 'Información de la Sesion',
             'action' => route('admin.sesiones.store'),
-            'cancelRoute' => route('admin.sesiones.index'),
+            'cancelRoute' => $cancelRoute ?? route('admin.sesiones.index'),
             'fields' => [
                 [
                     'name' => 'fecha_id',
@@ -21,6 +21,7 @@
                     'optionLabel' => 'nombre',
                     'optionValue' => 'id',
                     'required' => true,
+                    'value' => $fechaId ?? null,
                     'width' => 8
                 ],
                 [

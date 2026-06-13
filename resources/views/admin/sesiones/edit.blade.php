@@ -13,7 +13,7 @@
             'title' => 'Información de la Sesión',
             'action' => route('admin.sesiones.update', $sesion),
             'method' => 'PUT',
-            'cancelRoute' => route('admin.sesiones.show', $sesion),
+            'cancelRoute' => $cancelRoute ?? route('admin.sesiones.show', $sesion),
             'fields' => [
                 [
                     'name' => 'fecha_id',

@@ -1,5 +1,5 @@
 @extends('layouts.form')
-@section('title', 'Crear Circuito')
+@section('title', 'Circuitos')
 
 @section('content')
 @include('components.admin.page-header', [

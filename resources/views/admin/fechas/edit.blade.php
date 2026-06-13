@@ -54,14 +54,9 @@
                 ],
                 [
                     'name' => 'campeonato_id',
-                    'label' => 'Campeonato',
-                    'type' => 'select',
-                    'options' => $campeonatos,
-                    'optionLabel' => 'nombre',
-                    'optionValue' => 'id',
-                    'required' => true,
-                    'width' => 8,
-                    'value' => $fecha->campeonato_id
+                    'label' => '',
+                    'type' => 'hidden',
+                    'value' => session('campeonato_id')
                 ]
             ]
         ])

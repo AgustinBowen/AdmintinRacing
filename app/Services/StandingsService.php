@@ -32,7 +32,11 @@ class StandingsService
     {
         $map = [];
         foreach ($rows as $row) {
-            $key = is_null($row->posicion) ? 'all' : (int)$row->posicion;
+            if ($row->tipo_sesion === 'presentacion') {
+                $key = 'all';
+            } else {
+                $key = is_null($row->posicion) ? 'all' : (int)$row->posicion;
+            }
             $map[$row->tipo_sesion][$key] = (int)$row->puntos;
         }
         return $map;

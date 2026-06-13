@@ -97,8 +97,15 @@ class ResultadoSesionController extends Controller
 
     public function importForm()
     {
-        $fechas = \App\Models\Fecha::with('campeonato')->orderBy('created_at', 'desc')->get();
+        $fechas = \App\Models\Fecha::with('campeonato')
+            ->where('campeonato_id', session('campeonato_id'))
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        $fechaIds = $fechas->pluck('id');
+
         $sesiones = SesionDefinicion::with('fecha')
+            ->whereIn('fecha_id', $fechaIds)
             ->orderBy('created_at', 'desc')
             ->get();
             
@@ -135,7 +142,7 @@ class ResultadoSesionController extends Controller
         $sesion = SesionDefinicion::find($sesion_id);
         
         Session::flash('success', "Se importaron/actualizaron $guardados resultados exitosamente.");
-        return Redirect::route('admin.resultados.index', ['sesion_tipo' => $sesion->tipo]);
+        return Redirect::route('admin.fechas.resultados', $sesion->fecha_id);
     }
 
     /**
@@ -213,7 +220,7 @@ class ResultadoSesionController extends Controller
         (new \App\Services\StandingsService())->syncChampionshipTotals($resultado->sesion->fecha->campeonato);
 
         Session::flash('success', 'Resultado creado exitosamente.');
-        return Redirect::route('admin.resultados.index');
+        return Redirect::route('admin.fechas.resultados', $resultado->sesion->fecha_id);
     }
 
     /**
@@ -233,7 +240,8 @@ class ResultadoSesionController extends Controller
         $sesiones = SesionDefinicion::pluck('tipo', 'id');
         $pilotos = Piloto::pluck('nombre', 'id');
 
-        return view('admin.resultados.edit', compact('resultado', 'sesiones', 'pilotos'));
+        $cancelRoute = route('admin.fechas.resultados', $resultado->sesion->fecha_id);
+        return view('admin.resultados.edit', compact('resultado', 'sesiones', 'pilotos', 'cancelRoute'));
     }
 
     /**
@@ -249,7 +257,7 @@ class ResultadoSesionController extends Controller
         (new \App\Services\StandingsService())->syncChampionshipTotals($resultado->sesion->fecha->campeonato);
 
         Session::flash('success', 'Resultado actualizado exitosamente.');
-        return Redirect::route('admin.resultados.index');
+        return Redirect::route('admin.fechas.resultados', $resultado->sesion->fecha_id);
     }
 
     /**
@@ -257,8 +265,9 @@ class ResultadoSesionController extends Controller
      */
     public function destroy(ResultadoSesion $resultado)
     {
+        $fechaId = $resultado->sesion->fecha_id;
         $resultado->delete();
         Session::flash('success', 'Resultado eliminado exitosamente.');
-        return Redirect::route('admin.resultados.index');
+        return Redirect::route('admin.fechas.resultados', $fechaId);
     }
 }

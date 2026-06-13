@@ -3,8 +3,7 @@
 
 @section('content')
 @include('components.admin.page-header', [
-    'title' => 'Gestión de Circuitos',
-    'subtitle' => 'Administra todos los circuitos disponibles'
+    'title' => 'Gestión de Circuitos'
 ])
 
 @include('components.admin.table', [

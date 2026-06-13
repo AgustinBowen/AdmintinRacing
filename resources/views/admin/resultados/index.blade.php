@@ -4,7 +4,6 @@
 @section('content')
 @include('components.admin.page-header', [
     'title' => 'Gestión de Resultados',
-    'subtitle' => 'Administra todos los resultados de sesiones registrados'
 ])
 
 @include('components.admin.table', [
@@ -17,7 +16,7 @@
         [
             'url' => route('admin.resultados.import.form'),
             'text' => 'Importar Archivo',
-            'icon' => 'fas fa-file-image',
+            'icon' => 'photo',
             'class' => 'btn-secondary-modern'
         ]
     ],

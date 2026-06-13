@@ -21,11 +21,11 @@
 
 <div style="margin-bottom: 24px;">
     <div style="font-family:var(--font-sans); font-size:14px; font-weight:600; margin-bottom:8px;">Revisar Resultados de Planilla/OCR</div>
-    <div style="display:inline-block; background:var(--carbon); border:1px solid var(--line); padding:4px 12px; font-size:12px; font-family:var(--font-display); letter-spacing:1px;"><i class="fas fa-magic" style="margin-right:6px;"></i> DETECTADOS: {{ count($resultados_json) }}</div>
+    <div style="display:inline-block; background:var(--carbon); border:1px solid var(--line); padding:4px 12px; font-size:12px; font-family:var(--font-display); letter-spacing:1px;"><x-heroicon-o-sparkles style="width:1em; height:1em; vertical-align:-0.125em; margin-right:6px;" /> DETECTADOS: {{ count($resultados_json) }}</div>
 </div>
 
 <div style="background:var(--carbon-2); border-left:3px solid var(--racing); padding:16px; margin-bottom:24px; font-family:var(--font-sans); font-size:14px; color:var(--white);">
-    <i class="fas fa-exclamation-triangle" style="color:var(--racing); margin-right:8px;"></i>
+    <x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color:var(--racing); margin-right:8px;" />
     <strong>Revisa con atención:</strong> La herramienta intenta asignar cada nombre escaneado a un "Piloto del Sistema". Verifica que cada fila esté asignada al piloto correcto y que los tiempos sean exactos.
 </div>
 
@@ -69,9 +69,9 @@
                         <div style="display:flex; align-items:center; gap:8px;">
                             <div id="match-icon-{{ $index }}">
                                 @if(empty($row['piloto_id_match']))
-                                    <i class="fas fa-exclamation-triangle" style="color:var(--racing);" title="No se encontró coincidencia exacta"></i>
+                                    <x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color:var(--racing);" />
                                 @else
-                                    <i class="fas fa-check-circle" style="color:#22c55e;" title="Coincidencia encontrada"></i>
+                                    <x-heroicon-o-check-circle style="width:1em; height:1em; vertical-align:-0.125em; color:#22c55e;" />
                                 @endif
                             </div>
                             <select name="items[{{ $index }}][piloto_id]" class="pilot-selector" required onchange="updateMatchIcon(this, {{ $index }})">
@@ -83,7 +83,7 @@
                                 @endforeach
                             </select>
                             <button type="button" class="add-btn" title="Crear nuevo piloto" onclick="quickCreatePilot({{ $index }}, '{{ addslashes($row['nombre'] ?? '') }}', '{{ $row['auto'] ?? '' }}')">
-                                <i class="fas fa-plus-circle"></i>
+                                <x-heroicon-o-plus-circle style="width:1em; height:1em; vertical-align:-0.125em;" />
                             </button>
                         </div>
                     </td>
@@ -208,9 +208,9 @@
         if (!iconDiv) return;
         
         if (select.value === '') {
-            iconDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--racing);" title="Seleccione un piloto"></i>';
+            iconDiv.innerHTML = '<x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color:var(--racing);" />';
         } else {
-            iconDiv.innerHTML = '<i class="fas fa-check-circle" style="color:#22c55e;" title="Piloto vinculado"></i>';
+            iconDiv.innerHTML = '<x-heroicon-o-check-circle style="width:1em; height:1em; vertical-align:-0.125em; color:#22c55e;" />';
         }
     }
 

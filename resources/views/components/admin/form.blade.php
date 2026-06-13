@@ -13,13 +13,15 @@
             @php 
                $colSpan = ($field['width'] ?? 12) == 12 ? 'full' : '';
             @endphp
-            <div class="field {{ $colSpan }}">
+            <div class="field {{ $colSpan }}" @if($field['type'] === 'hidden') style="display:none;" @endif>
+                @if($field['type'] !== 'hidden')
                 <label for="{{ $field['name'] }}">
                     {{ $field['label'] }}
                     @if($field['required'] ?? false) <span style="color: var(--racing);">*</span> @endif
                 </label>
+                @endif
 
-                @if($field['type'] === 'text' || $field['type'] === 'email' || $field['type'] === 'number')
+                @if(in_array($field['type'], ['text', 'email', 'number', 'hidden']))
                 <input type="{{ $field['type'] }}"
                     id="{{ $field['name'] }}"
                     name="{{ $field['name'] }}"

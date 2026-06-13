@@ -310,6 +310,41 @@ class FechaController extends Controller
         return back()->with('success', 'Puntaje personalizado eliminado. Se usará el puntaje del campeonato.');
     }
 
+    /**
+     * Bulk update all scoring overrides for a fecha.
+     */
+    public function bulkScoring(Request $request, Fecha $fecha)
+    {
+        $request->validate([
+            'scoring' => 'array',
+            'scoring.*' => 'array',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $fecha) {
+            SistemaPuntajeFecha::where('fecha_id', $fecha->id)->delete();
+
+            if ($request->has('scoring')) {
+                foreach ($request->scoring as $tipo => $rows) {
+                    foreach ($rows as $row) {
+                        if (isset($row['posicion']) && isset($row['puntos']) && is_numeric($row['posicion']) && is_numeric($row['puntos'])) {
+                            SistemaPuntajeFecha::create([
+                                'fecha_id' => $fecha->id,
+                                'tipo_sesion' => $tipo,
+                                'posicion' => (int)$row['posicion'],
+                                'puntos' => (int)$row['puntos'],
+                            ]);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Sincronizar puntos de la fecha
+        (new \App\Services\StandingsService())->syncFechaPuntos($fecha);
+
+        return back()->with('success', 'Sistema de puntaje personalizado actualizado exitosamente.');
+    }
+
     public function eliminarResultadosSesion(SesionDefinicion $sesion)
     {
         $sesion->resultados()->delete();

@@ -104,15 +104,17 @@ class SesionDefinicionController extends Controller
     /**
      * Show the form for creating a new session.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $fechaId = $request->query('fecha_id');
         $fechas = Fecha::where('campeonato_id', session('campeonato_id'))->orderBy('nombre')->get();
         $tipos = [];
         foreach (SesionDefinicion::TIPOS as $value => $label) {
             $tipos[] = ['value' => $value, 'label' => $label];
         }
 
-        return view('admin.sesiones.create', compact('fechas', 'tipos'));
+        $cancelRoute = $fechaId ? route('admin.fechas.show', $fechaId) : route('admin.dashboard');
+        return view('admin.sesiones.create', compact('fechas', 'tipos', 'fechaId', 'cancelRoute'));
     }
 
     /**
@@ -125,7 +127,7 @@ class SesionDefinicionController extends Controller
         SesionDefinicion::create($validated);
 
         Session::flash('success', 'Sesión creada exitosamente.');
-        return Redirect::route('admin.sesiones.index');
+        return Redirect::route('admin.fechas.show', $validated['fecha_id']);
     }
 
     /**
@@ -148,7 +150,8 @@ class SesionDefinicionController extends Controller
             $tipos[] = ['value' => $value, 'label' => $label];
         }
 
-        return view('admin.sesiones.edit', compact('sesion', 'fechas', 'tipos'));
+        $cancelRoute = route('admin.fechas.show', $sesion->fecha_id);
+        return view('admin.sesiones.edit', compact('sesion', 'fechas', 'tipos', 'cancelRoute'));
     }
 
     /**
@@ -161,7 +164,7 @@ class SesionDefinicionController extends Controller
         $sesion->update($validated);
 
         Session::flash('success', 'Sesión actualizada exitosamente.');
-        return Redirect::route('admin.sesiones.index');
+        return Redirect::route('admin.fechas.show', $sesion->fecha_id);
     }
 
     /**
@@ -169,8 +172,9 @@ class SesionDefinicionController extends Controller
      */
     public function destroy(SesionDefinicion $sesion)
     {
+        $fechaId = $sesion->fecha_id;
         $sesion->delete();
         Session::flash('success', 'Sesión eliminada exitosamente.');
-        return redirect()->back();
+        return Redirect::route('admin.fechas.show', $fechaId);
     }
 }

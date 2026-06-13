@@ -18,13 +18,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
                 <input type="text" id="yrSearch" placeholder="Buscar temporada…" autocomplete="off" />
             </div>
-            <a href="{{ route('admin.categorias.campeonatos.create', $categoria) }}" class="btn sm" style="margin-top:8px;">+ Nuevo</a>
+            <a href="{{ route('admin.categorias.campeonatos.create', $categoria) }}" class="btn sm">+ Nuevo</a>
         </div>
     </div>
     <div class="checker-strip dim"></div>
     <div class="yr-grid" id="yrGrid" style="display:grid;">
-        @foreach($categoria->campeonatos as $campeonato)
-        <a href="{{ route('admin.categorias.campeonatos.seleccionar', [$categoria, $campeonato]) }}" class="yr-card show" style="text-decoration:none;">
+        @foreach($categoria->campeonatos as $index => $campeonato)
+        <a href="{{ route('admin.categorias.campeonatos.seleccionar', [$categoria, $campeonato]) }}" class="yr-card show" style="text-decoration:none; animation-delay: {{ $index * 0.06 }}s;">
             <span class="yr-badge">Disponible</span>
             <div class="yr-num">{{ $campeonato->anio }}</div>
             <div class="yr-block">

@@ -47,13 +47,9 @@
                 ],
                 [
                     'name' => 'campeonato_id',
-                    'label' => 'Campeonato',
-                    'type' => 'select',
-                    'options' => $campeonatos,
-                    'optionLabel' => 'nombre',
-                    'optionValue' => 'id',
-                    'required' => true,
-                    'width' => 8
+                    'label' => '',
+                    'type' => 'hidden',
+                    'value' => session('campeonato_id')
                 ],
                 [
                     'name' => 'generar_cronograma',

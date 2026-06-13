@@ -11,14 +11,14 @@
                 'type' => 'text',
                 'value' => $sesion->fecha->nombre ?? '—',
                 'width' => 8,
-                'icon' => 'fas fa-calendar-alt'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Tipo de Sesión',
                 'type' => 'text',
                 'value' => $sesion->tipo ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-flag'
+                'icon' => 'flag'
             ],
             [
                 'label' => 'Fecha de la Sesión',
@@ -27,21 +27,21 @@
                 'format' => 'd/m/Y',
                 'showRelative' => true,
                 'width' => 6,
-                'icon' => 'fas fa-calendar-day'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Circuito',
                 'type' => 'text',
                 'value' => $sesion->fecha->circuito->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-road'
+                'icon' => 'map'
             ],
             [
                 'label' => 'Campeonato',
                 'type' => 'text',
                 'value' => $sesion->fecha->campeonato->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-trophy'
+                'icon' => 'trophy'
             ],
         ],
         'actions' => [
@@ -50,12 +50,12 @@
                 'label' => 'Editar',
                 'route' => route('admin.sesiones.edit', $sesion),
                 'class' => 'btn-primary-modern',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'btn-destructive-modern',
                 'data' => [
                     'bs-toggle' => 'modal',
@@ -69,7 +69,7 @@
                 'label' => 'Volver a la lista',
                 'route' => route('admin.sesiones.index'),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-arrow-left'
+                'icon' => 'arrow-left'
             ]
         ]
     ])

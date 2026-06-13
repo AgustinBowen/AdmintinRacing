@@ -28,6 +28,7 @@ class CronogramaService
             ['tipo' => 'serie_clasificatoria_1', 'hora' => '12:00', 'duracion' => '6 vueltas', 'dia' => $dia2],
             ['tipo' => 'serie_clasificatoria_2', 'hora' => '13:00', 'duracion' => '6 vueltas', 'dia' => $dia2],
             ['tipo' => 'serie_clasificatoria_3', 'hora' => '14:00', 'duracion' => '6 vueltas', 'dia' => $dia2],
+            ['tipo' => 'tanques_llenos',         'hora' => '10:00', 'duracion' => '10 min',    'dia' => $diaFinal],
             ['tipo' => 'carrera_final',          'hora' => '16:00', 'duracion' => '12 vueltas','dia' => $diaFinal],
         ];
 

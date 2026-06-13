@@ -40,7 +40,22 @@ class SesionDefinicion extends Model
         'serie_clasificatoria_1' => 'Serie Clasificatoria 1',
         'serie_clasificatoria_2' => 'Serie Clasificatoria 2',
         'serie_clasificatoria_3' => 'Serie Clasificatoria 3',
+        'tanques_llenos' => 'Tanques Llenos',
         'carrera_final' => 'Carrera Final',
+    ];
+
+    const ABREVIATURAS = [
+        'entrenamiento_1' => 'E1',
+        'entrenamiento_2' => 'E2',
+        'entrenamiento_3' => 'E3',
+        'entrenamiento_4' => 'E4',
+        'clasificacion' => 'C',
+        'acumulados' => 'AC',
+        'serie_clasificatoria_1' => 'S1',
+        'serie_clasificatoria_2' => 'S2',
+        'serie_clasificatoria_3' => 'S3',
+        'tanques_llenos' => 'TL',
+        'carrera_final' => 'F',
     ];
 
     const ORDEN = [
@@ -53,7 +68,8 @@ class SesionDefinicion extends Model
         'serie_clasificatoria_1' => 7,
         'serie_clasificatoria_2' => 8,
         'serie_clasificatoria_3' => 9,
-        'carrera_final'   => 10,
+        'tanques_llenos'  => 10,
+        'carrera_final'   => 11,
     ];
     public function fecha(): BelongsTo
     {

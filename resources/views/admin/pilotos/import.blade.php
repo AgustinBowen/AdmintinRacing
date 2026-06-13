@@ -1,5 +1,5 @@
 @extends('layouts.selector')
-@section('title', 'Importar Pilotos')
+@section('title', 'Pilotos')
 
 @section('content')
 <section class="screen active" id="pdfUpload" style="display:flex;">
@@ -28,10 +28,7 @@
             <button class="btn sm ghost" onclick="resetFile(event)">Quitar</button>
         </div>
         
-        <div id="loadingStatus" class="mt-3 text-center d-none" style="margin-top:20px; color:var(--gray);">
-            <i class="fas fa-spinner fa-spin me-2"></i> Analizando el documento PDF, por favor espera...
-        </div>
-        
+
         <div id="errorStatus" class="mt-3 text-center d-none" style="margin-top:20px; color:var(--racing);">
         </div>
 
@@ -74,7 +71,7 @@
 
     document.getElementById('btnProcesarPdf').addEventListener('click', async function() {
         const fileInput = document.getElementById('pdf_file');
-        const loading = document.getElementById('loadingStatus');
+
         const error = document.getElementById('errorStatus');
         
         error.classList.add('d-none');
@@ -92,7 +89,7 @@
             return;
         }
 
-        loading.classList.remove('d-none');
+
         this.disabled = true;
 
         try {
@@ -170,7 +167,7 @@
                     console.error(err);
                     error.innerText = "No se pudo leer el contenido del PDF o " + err.message;
                     error.classList.remove('d-none');
-                    loading.classList.add('d-none');
+
                     document.getElementById('btnProcesarPdf').disabled = false;
                 }
             };
@@ -181,7 +178,7 @@
             console.error(err);
             error.innerText = "Error general al abrir el archivo.";
             error.classList.remove('d-none');
-            loading.classList.add('d-none');
+
             this.disabled = false;
         }
     });

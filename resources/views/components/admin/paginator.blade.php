@@ -8,9 +8,9 @@
             <ul class="pagination">
                 {{-- Previous Page Link --}}
                 @if ($paginator->onFirstPage())
-                    <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                    <li class="page-item disabled"><span class="page-link"><x-heroicon-o-chevron-left style="width:1em; height:1em; vertical-align:-0.125em;" /></span></li>
                 @else
-                    <li class="page-item"><a href="{{ $paginator->previousPageUrl() }}" class="page-link" rel="prev"><i class="fas fa-chevron-left"></i></a></li>
+                    <li class="page-item"><a href="{{ $paginator->previousPageUrl() }}" class="page-link" rel="prev"><x-heroicon-o-chevron-left style="width:1em; height:1em; vertical-align:-0.125em;" /></a></li>
                 @endif
 
                 {{-- Pagination Elements --}}
@@ -34,9 +34,9 @@
 
                 {{-- Next Page Link --}}
                 @if ($paginator->hasMorePages())
-                    <li class="page-item"><a href="{{ $paginator->nextPageUrl() }}" class="page-link" rel="next"><i class="fas fa-chevron-right"></i></a></li>
+                    <li class="page-item"><a href="{{ $paginator->nextPageUrl() }}" class="page-link" rel="next"><x-heroicon-o-chevron-right style="width:1em; height:1em; vertical-align:-0.125em;" /></a></li>
                 @else
-                    <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+                    <li class="page-item disabled"><span class="page-link"><x-heroicon-o-chevron-right style="width:1em; height:1em; vertical-align:-0.125em;" /></span></li>
                 @endif
             </ul>
         </div>

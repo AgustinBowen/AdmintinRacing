@@ -23,7 +23,7 @@
 <body>
     <div class="bg-texture"></div>
 
-    <section class="screen active" id="panel">
+    <section class="screen active {{ session('animate_entry') ? 'animate-entry' : '' }}" id="panel">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sb-brand">
@@ -33,37 +33,25 @@
             
             <nav class="sb-nav" id="navList">
                 <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4h6l1 2h8v9h-8l-1-2H4"/></svg></span>
+                    <span class="ic"><x-heroicon-o-home /></span>
                     <span>Inicio</span>
                 </a>
                 @if(session()->has('campeonato_id'))
                 <a href="{{ route('admin.circuitos.index') }}" class="nav-item {{ request()->routeIs('admin.circuitos.*') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                    <span class="ic"><x-heroicon-o-map /></span>
                     <span>Circuitos</span>
                 </a>
                 <a href="{{ route('admin.pilotos.index') }}" class="nav-item {{ request()->routeIs('admin.pilotos.*') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+                    <span class="ic"><x-heroicon-o-user /></span>
                     <span>Pilotos</span>
                 </a>
-                <a href="{{ route('admin.fechas.index') }}" class="nav-item {{ request()->routeIs('admin.fechas.*') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></span>
-                    <span>Fechas</span>
-                </a>
-                <a href="{{ route('admin.sesiones.index') }}" class="nav-item {{ request()->routeIs('admin.sesiones.*') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-                    <span>Sesiones</span>
-                </a>
-                <a href="{{ route('admin.resultados.index') }}" class="nav-item {{ request()->routeIs('admin.resultados.*') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
-                    <span>Resultados</span>
-                </a>
-                <a href="{{ route('admin.horarios.index') }}" class="nav-item {{ request()->routeIs('admin.horarios.*') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span>
-                    <span>Horarios</span>
+                <a href="{{ route('admin.fechas.index') }}" class="nav-item {{ request()->routeIs('admin.fechas.*') || request()->routeIs('admin.sesiones.*') || request()->routeIs('admin.horarios.*') || request()->routeIs('admin.resultados.*') ? 'active' : '' }}">
+                    <span class="ic"><x-heroicon-o-calendar-date-range /></span>
+                    <span>Calendario</span>
                 </a>
                 
                 <a href="{{ route('admin.campeonatos.show', session('campeonato_id')) }}" class="nav-item {{ request()->routeIs('admin.campeonatos.show') || request()->routeIs('admin.campeonatos.edit') ? 'active' : '' }}">
-                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+                    <span class="ic"><x-heroicon-o-table-cells /></span>
                     <span>Campeonato</span>
                 </a>
                 @endif
@@ -81,17 +69,15 @@
         <!-- Main Content -->
         <div class="main">
             <div class="topbar">
-                <div class="breadcrumb">
-                    @if(session()->has('campeonato_id'))
-                        <a href="{{ route('admin.categorias.index') }}" class="seg" style="text-decoration:none;">{{ session('categoria_nombre', 'Categoría') }}</a>
-                        <span class="arr">&rsaquo;</span>
-                        <a href="{{ route('admin.campeonatos.show', session('campeonato_id')) }}" class="seg" style="text-decoration:none;">{{ session('campeonato_nombre', 'Campeonato') }}</a>
-                        <span class="arr">&rsaquo;</span>
-                    @endif
+                <div class="breadcrumb" style="white-space: nowrap;">
                     <span class="seg cur">@yield('title')</span>
                 </div>
-                <div class="telemetry">
-                    <span>Estado <b>Activo</b></span>
+                <div class="telemetry" style="display:flex; align-items:center; gap: 14px; white-space: nowrap;">
+                    @if(session()->has('campeonato_id'))
+                        <a href="{{ route('admin.categorias.index') }}" class="btn ghost sm" style="white-space: nowrap;">Cambiar Categoría</a>
+                        <a href="{{ route('admin.categorias.show', session('categoria_id')) }}" class="btn ghost sm" style="white-space: nowrap;">Cambiar Temporada</a>
+                        <div style="width: 1px; height: 24px; background: var(--line); margin: 0 4px;"></div>
+                    @endif
                     <span>Usuario <b>{{ auth()->user()->name ?? 'Admin' }}</b></span>
                 </div>
             </div>
@@ -263,6 +249,39 @@
                 $('#panel').addClass('active');
             } else {
                 window.location.reload();
+            }
+        });
+
+        // Global Custom Modal Handler
+        document.addEventListener('click', function(e) {
+            // Open modals
+            const toggleBtn = e.target.closest('[data-bs-toggle="modal"]');
+            if (toggleBtn) {
+                const targetSelector = toggleBtn.getAttribute('data-bs-target');
+                if (targetSelector) {
+                    const targetModal = document.querySelector(targetSelector);
+                    if (targetModal && targetModal.classList.contains('custom-modal')) {
+                        e.preventDefault();
+                        targetModal.classList.add('show');
+                    }
+                }
+            }
+
+            // Close modals with dismiss button
+            const dismissBtn = e.target.closest('[data-dismiss="modal"]');
+            if (dismissBtn) {
+                const modal = dismissBtn.closest('.custom-modal');
+                if (modal) {
+                    e.preventDefault();
+                    modal.classList.remove('show');
+                }
+            }
+        });
+
+        // Close modals on clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('custom-modal') && e.target.classList.contains('show')) {
+                e.target.classList.remove('show');
             }
         });
 

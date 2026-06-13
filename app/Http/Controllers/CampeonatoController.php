@@ -181,7 +181,42 @@ class CampeonatoController extends Controller
         // Sincronizar todo al cambiar reglas
         (new \App\Services\StandingsService())->sincronizar($campeonato);
 
-        return back()->with('success', 'Sistema de puntaje restablecido y posiciones recalculadas.');
+        return back()->with('success', 'Puntaje restablecido a predeterminados y posiciones recalculadas.');
+    }
+
+    /**
+     * Bulk update all scoring for a championship.
+     */
+    public function bulkScoring(Request $request, Campeonato $campeonato)
+    {
+        $request->validate([
+            'scoring' => 'array',
+            'scoring.*' => 'array',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $campeonato) {
+            SistemaPuntaje::where('campeonato_id', $campeonato->id)->delete();
+
+            if ($request->has('scoring')) {
+                foreach ($request->scoring as $tipo => $rows) {
+                    foreach ($rows as $row) {
+                        if (isset($row['posicion']) && isset($row['puntos']) && is_numeric($row['posicion']) && is_numeric($row['puntos'])) {
+                            SistemaPuntaje::create([
+                                'campeonato_id' => $campeonato->id,
+                                'tipo_sesion' => $tipo,
+                                'posicion' => (int)$row['posicion'],
+                                'puntos' => (int)$row['puntos'],
+                            ]);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Sincronizar todo al cambiar reglas
+        (new \App\Services\StandingsService())->sincronizar($campeonato);
+
+        return back()->with('success', 'Sistema de puntaje actualizado y posiciones recalculadas.');
     }
 
     /**

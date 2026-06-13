@@ -45,6 +45,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::post('campeonatos/{campeonato}/scoring/add',                    [CampeonatoController::class, 'addScoring'])->name('campeonatos.scoring.add');
     Route::delete('campeonatos/{campeonato}/scoring/{sistemaPuntaje}/del', [CampeonatoController::class, 'deleteScoring'])->name('campeonatos.scoring.delete');
     Route::post('campeonatos/{campeonato}/scoring/reset',                  [CampeonatoController::class, 'resetScoring'])->name('campeonatos.scoring.reset');
+    Route::post('campeonatos/{campeonato}/scoring/bulk',                   [CampeonatoController::class, 'bulkScoring'])->name('campeonatos.scoring.bulk');
     Route::post('campeonatos/{campeonato}/sync',                           [CampeonatoController::class, 'syncStandings'])->name('campeonatos.sync');
     Route::resource('campeonatos', CampeonatoController::class);
 
@@ -71,6 +72,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::delete('fechas/{fecha}/scoring/{sistemaPuntajeFecha}/del',     [FechaController::class, 'deleteScoringFecha'])->name('fechas.scoring.delete');
     Route::post('fechas/{fecha}/scoring/reset',                           [FechaController::class, 'resetScoringFecha'])->name('fechas.scoring.reset');
     Route::post('fechas/{fecha}/scoring/customize',                       [FechaController::class, 'customizeScoringFecha'])->name('fechas.scoring.customize');
+    Route::post('fechas/{fecha}/scoring/bulk',                            [FechaController::class, 'bulkScoring'])->name('fechas.scoring.bulk');
     Route::resource('fechas', FechaController::class);
 
     // Gestión de Horarios

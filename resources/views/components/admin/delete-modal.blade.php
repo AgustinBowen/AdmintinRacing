@@ -13,7 +13,7 @@
     <div class="custom-modal-content">
         <div class="custom-modal-header">
             <h5 class="custom-modal-title">
-                <i class="fas fa-exclamation-triangle" style="color: var(--racing); margin-right: 8px;"></i>
+                <x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color: var(--racing); margin-right: 8px;" />
                 {{ $title }}
             </h5>
             <button type="button" class="custom-btn-close" data-dismiss="modal">&times;</button>
@@ -21,7 +21,7 @@
         <div class="custom-modal-body">
             <p style="margin-bottom: 12px; font-size: 15px;">{{ $message }} <strong id="itemName-{{ $modalId }}" style="color: var(--white);"></strong>?</p>
             <div style="background-color: rgba(229, 9, 20, 0.1); border: 1px dashed var(--racing); padding: 12px; margin-top: 16px;">
-                <i class="fas fa-info-circle" style="color: var(--racing); margin-right: 8px;"></i>
+                <x-heroicon-o-information-circle style="width:1em; height:1em; vertical-align:-0.125em; color: var(--racing); margin-right: 8px;" />
                 <small style="color: var(--bone);">{{ $warningText }}</small>
             </div>
         </div>
@@ -30,7 +30,7 @@
                 {{ $cancelText }}
             </button>
             <button type="button" class="btn" style="border-color: var(--racing); color: var(--racing);" id="confirmDelete-{{ $modalId }}">
-                <i class="fas fa-trash"></i> {{ $confirmText }}
+                <x-heroicon-o-trash style="width:1em; height:1em; vertical-align:-0.125em;" /> {{ $confirmText }}
             </button>
         </div>
     </div>

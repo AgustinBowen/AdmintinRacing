@@ -48,7 +48,7 @@
                                 @if(isset($rowActions))
                                     @foreach($rowActions as $action)
                                         <a href="{{ route($action['route'], $item) }}" class="icon-btn" title="{{ $action['title'] ?? '' }}">
-                                            <i class="{{ $action['icon'] ?? 'fas fa-link' }}"></i>
+                                            <x-dynamic-component :component="'heroicon-o-' . ($action['icon'] ?? 'link')" style="width:1em; height:1em; vertical-align:-0.125em;" />
                                         </a>
                                     @endforeach
                                 @endif

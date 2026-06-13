@@ -7,7 +7,7 @@
             
             <div class="custom-modal-header">
                 <h5 class="custom-modal-title">
-                    <i class="fas fa-calendar-plus" style="margin-right: 8px;"></i>
+                    <x-heroicon-o-calendar-days style="width:1em; height:1em; vertical-align:-0.125em; margin-right: 8px;" />
                     {{ $title }}
                 </h5>
                 <button type="button" class="custom-btn-close" data-dismiss="modal">&times;</button>
@@ -63,7 +63,7 @@
                     Cancelar
                 </button>
                 <button type="submit" class="btn" style="background: var(--white); color: var(--black);" id="submitBtn">
-                    <i class="fas fa-save"></i> Crear Fecha
+                    <x-heroicon-o-document-check style="width:1em; height:1em; vertical-align:-0.125em;" /> Crear Fecha
                 </button>
             </div>
         </form>
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('⚠ Error de conexión');
         })
         .finally(() => {
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Crear Fecha';
+            submitBtn.innerHTML = '<x-heroicon-o-document-check style="width:1em; height:1em; vertical-align:-0.125em;" /> Crear Fecha';
             submitBtn.disabled = false;
         });
     });

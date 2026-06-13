@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ver Circuito')
+@section('title', 'Circuitos')
 
 @section('content')
     @include('components.admin.show', [
@@ -11,14 +11,14 @@
                 'type' => 'text',
                 'value' => $circuito->nombre,
                 'width' => 8,
-                'icon' => 'fas fa-flag-checkered'
+                'icon' => 'flag'
             ],
             [
                 'label' => 'Distancia',
                 'type' => 'text',
                 'value' => number_format($circuito->distancia, 3) . ' km',
                 'width' => 4,
-                'icon' => 'fas fa-route'
+                'icon' => 'map'
             ],
         ],
         'actions' => [
@@ -27,12 +27,12 @@
                 'label' => 'Editar',
                 'route' => route('admin.circuitos.edit', $circuito),
                 'class' => 'btn-primary-modern',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'btn-destructive-modern',
                 'data' => [
                     'bs-toggle' => 'modal',
@@ -46,7 +46,7 @@
                 'label' => 'Volver a la lista',
                 'route' => route('admin.circuitos.index'),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-arrow-left'
+                'icon' => 'arrow-left'
             ]
         ]
     ])

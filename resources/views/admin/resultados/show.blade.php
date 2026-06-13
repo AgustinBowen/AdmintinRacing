@@ -11,28 +11,28 @@
                 'type' => 'text',
                 'value' => $resultado->sesion->tipo ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-flag-checkered'
+                'icon' => 'flag'
             ],
             [
                 'label' => 'Piloto',
                 'type' => 'text',
                 'value' => $resultado->piloto->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-user-circle'
+                'icon' => 'user-circle'
             ],
             [
                 'label' => 'Posición',
                 'type' => 'text',
                 'value' => $resultado->posicion ?? '—',
                 'width' => 3,
-                'icon' => 'fas fa-trophy'
+                'icon' => 'trophy'
             ],
             [
                 'label' => 'Puntos',
                 'type' => 'text',
                 'value' => $resultado->puntos ?? '—',
                 'width' => 3,
-                'icon' => 'fas fa-star'
+                'icon' => 'star'
             ],
             [
                 'label' => 'Presente',
@@ -40,7 +40,7 @@
                 'value' => $resultado->presente ? 'Sí' : 'No',
                 'badgeClass' => $resultado->presente ? 'bg-success' : 'bg-secondary',
                 'width' => 3,
-                'icon' => 'fas fa-check-circle'
+                'icon' => 'check-circle'
             ],
             [
                 'label' => 'Excluido',
@@ -48,63 +48,63 @@
                 'value' => $resultado->excluido ? 'Sí' : 'No',
                 'badgeClass' => $resultado->excluido ? 'bg-danger' : 'bg-success',
                 'width' => 3,
-                'icon' => 'fas fa-times-circle'
+                'icon' => 'x-circle'
             ],
             [
                 'label' => 'Tiempo Total',
                 'type' => 'text',
                 'value' => $resultado->tiempo_total_formateado ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-clock'
+                'icon' => 'clock'
             ],
             [
                 'label' => 'Mejor Tiempo',
                 'type' => 'text',
                 'value' => $resultado->mejor_tiempo_formateado ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-stopwatch'
+                'icon' => 'clock'
             ],
             [
                 'label' => 'Diferencia con el Primero',
                 'type' => 'text',
                 'value' => $resultado->diferencia_primero_formateada ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-chart-line'
+                'icon' => 'chart-bar-square'
             ],
             [
                 'label' => 'Vueltas Completadas',
                 'type' => 'text',
                 'value' => $resultado->vueltas ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-redo-alt'
+                'icon' => 'arrow-path'
             ],
             [
                 'label' => 'Mejor Sector 1',
                 'type' => 'text',
                 'value' => $resultado->sector_1_formateado ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-tachometer-alt'
+                'icon' => 'bolt'
             ],
             [
                 'label' => 'Mejor Sector 2',
                 'type' => 'text',
                 'value' => $resultado->sector_2_formateado ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-tachometer-alt'
+                'icon' => 'bolt'
             ],
             [
                 'label' => 'Mejor Sector 3',
                 'type' => 'text',
                 'value' => $resultado->sector_3_formateado ?? '—',
                 'width' => 12,
-                'icon' => 'fas fa-tachometer-alt'
+                'icon' => 'bolt'
             ],
             [
                 'label' => 'Observaciones',
                 'type' => 'textarea',
                 'value' => $resultado->observaciones ?? '—',
                 'width' => 12,
-                'icon' => 'fas fa-comment-alt'
+                'icon' => 'chat-bubble-left-ellipsis'
             ]
         ],
         'actions' => [
@@ -113,12 +113,12 @@
                 'label' => 'Editar',
                 'route' => route('admin.resultados.edit', $resultado),
                 'class' => 'btn-primary-modern',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'btn-destructive-modern',
                 'data' => [
                     'bs-toggle' => 'modal',
@@ -132,7 +132,7 @@
                 'label' => 'Volver a la lista',
                 'route' => route('admin.resultados.index'),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-arrow-left'
+                'icon' => 'arrow-left'
             ]
         ]
     ])

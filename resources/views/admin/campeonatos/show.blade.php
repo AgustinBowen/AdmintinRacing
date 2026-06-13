@@ -11,14 +11,14 @@
                 'type' => 'text',
                 'value' => $campeonato->nombre,
                 'width' => 6,
-                'icon' => 'fas fa-trophy'
+                'icon' => 'trophy'
             ],
             [
                 'label' => 'Año',
                 'type' => 'number',
                 'value' => $campeonato->anio,
                 'width' => 6,
-                'icon' => 'fas fa-calendar-alt'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Total de Fechas',
@@ -34,26 +34,26 @@
                 'label' => 'Ver Clasificación',
                 'route' => route('admin.campeonatos.standings', $campeonato),
                 'class' => 'btn-primary-modern',
-                'icon' => 'fas fa-trophy'
+                'icon' => 'trophy'
             ],
             [
                 'type' => 'link',
                 'label' => 'Sistema de Puntaje',
                 'route' => route('admin.campeonatos.scoring', $campeonato),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-sliders'
+                'icon' => 'adjustments-horizontal'
             ],
             [
                 'type' => 'link',
                 'label' => 'Editar',
                 'route' => route('admin.campeonatos.edit', $campeonato),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'btn-destructive-modern',
                 'data' => [
                     'bs-toggle' => 'modal',

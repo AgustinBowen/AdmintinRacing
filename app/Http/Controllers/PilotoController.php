@@ -86,8 +86,9 @@ class PilotoController extends Controller
             }
         }
 
-        $piloto = Piloto::create([
-            'nombre' => $nombre,
+        $piloto = Piloto::firstOrCreate([
+            'nombre' => $nombre
+        ], [
             'pais' => $validated['pais'] ?? 'Argentina'
         ]);
 
@@ -247,9 +248,10 @@ class PilotoController extends Controller
         $nombre = ucwords(strtolower(trim($validated['nombre'])));
         $campeonatoId = session('campeonato_id');
 
-        $piloto = Piloto::create([
-            'nombre' => $nombre,
-            'pais'   => $validated['pais'] ?? 'Argentina'
+        $piloto = Piloto::firstOrCreate([
+            'nombre' => $nombre
+        ], [
+            'pais' => $validated['pais'] ?? 'Argentina'
         ]);
 
         if ($campeonatoId) {

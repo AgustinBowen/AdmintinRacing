@@ -11,14 +11,14 @@
                 'type' => 'text',
                 'value' => $horario->fecha->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-calendar-alt'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Tipo de Sesión',
                 'type' => 'text',
                 'value' => $horario->sesion->tipo ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-flag-checkered'
+                'icon' => 'flag'
             ],
             [
                 'label' => 'Horario de Inicio',
@@ -26,14 +26,14 @@
                 'value' => $horario->horario,
                 'format' => 'H:i',
                 'width' => 4,
-                'icon' => 'fas fa-clock'
+                'icon' => 'clock'
             ],
             [
                 'label' => 'Duración',
                 'type' => 'text',
                 'value' => $horario->duracion ?? '—',
                 'width' => 4,
-                'icon' => 'fas fa-hourglass-half'
+                'icon' => 'clock'
             ],
             [
                 'label' => 'Horario Completo',
@@ -42,21 +42,21 @@
                     ? \Carbon\Carbon::parse($horario->horario)->format('H:i') . ' (' . $horario->duracion . ')'
                     : '—',
                 'width' => 4,
-                'icon' => 'fas fa-stopwatch'
+                'icon' => 'clock'
             ],
             [
                 'label' => 'Circuito',
                 'type' => 'text',
                 'value' => $horario->fecha->circuito->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-road'
+                'icon' => 'map'
             ],
             [
                 'label' => 'Observaciones',
                 'type' => 'textarea',
                 'value' => $horario->observaciones ?? 'Sin observaciones adicionales',
                 'width' => 12,
-                'icon' => 'fas fa-sticky-note'
+                'icon' => 'document-text'
             ]
         ],
         'actions' => [
@@ -65,12 +65,12 @@
                 'label' => 'Editar',
                 'route' => route('admin.horarios.edit', $horario),
                 'class' => 'btn-primary-modern',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'btn-destructive-modern',
                 'data' => [
                     'bs-toggle' => 'modal',
@@ -84,7 +84,7 @@
                 'label' => 'Volver a la lista',
                 'route' => route('admin.horarios.index'),
                 'class' => 'btn-secondary-modern',
-                'icon' => 'fas fa-arrow-left'
+                'icon' => 'arrow-left'
             ]
         ]
     ])

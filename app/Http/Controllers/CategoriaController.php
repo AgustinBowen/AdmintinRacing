@@ -38,7 +38,9 @@ class CategoriaController extends Controller
 
     public function show(Categoria $categoria)
     {
-        $categoria->load('campeonatos');
+        $categoria->load(['campeonatos' => function ($query) {
+            $query->withCount('fechas');
+        }]);
         return view('admin.categorias.show', compact('categoria'));
     }
 
@@ -84,6 +86,8 @@ class CategoriaController extends Controller
             'campeonato_id'     => $campeonato->id,
             'campeonato_nombre' => $campeonato->nombre,
         ]);
+
+        session()->flash('animate_entry', true);
 
         return redirect()->route('admin.dashboard')->with('success', 'Contexto cambiado a: ' . $categoria->nombre . ' - ' . $campeonato->nombre);
     }

@@ -1,21 +1,20 @@
 @extends('layouts.admin')
-@section('title', 'Clasificación — ' . $campeonato->nombre)
 
 @section('content')
 <div class="view-head">
-    <h1>CLASIFICACIÓN: {{ strtoupper($campeonato->nombre) }} <span style="color:var(--gray);font-size:16px;">TEMPORADA {{ $campeonato->anio }}</span></h1>
+    <h1>{{ strtoupper($campeonato->nombre) }}</h1>
 </div>
 
 {{-- Actions --}}
 <div class="form-actions" style="justify-content: flex-start; gap: 12px; margin-bottom: 24px;">
     <a href="{{ route('admin.campeonatos.show', $campeonato) }}" class="btn ghost">
-        <i class="fas fa-arrow-left"></i> Volver
+        <x-heroicon-o-arrow-left style="width:1em; height:1em; vertical-align:-0.125em;" /> Volver
     </a>
     <a href="{{ route('admin.campeonatos.scoring', $campeonato) }}" class="btn ghost">
-        <i class="fas fa-sliders"></i> Sistema de Puntaje
+        <x-heroicon-o-adjustments-horizontal style="width:1em; height:1em; vertical-align:-0.125em;" /> Sistema de Puntaje
     </a>
     <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#confirmSyncModal">
-        <i class="fas fa-sync-alt"></i> Sincronizar Puntos
+        <x-heroicon-o-arrow-path style="width:1em; height:1em; vertical-align:-0.125em;" /> Sincronizar Puntos
     </button>
 </div>
 
@@ -24,7 +23,7 @@
     <div class="custom-modal-content">
         <div class="custom-modal-header">
             <h5 class="custom-modal-title">
-                <i class="fas fa-sync-alt" style="color: var(--white); margin-right: 8px;"></i> Confirmar Sincronización
+                <x-heroicon-o-arrow-path style="width:1em; height:1em; vertical-align:-0.125em; color: var(--white); margin-right: 8px;" /> Confirmar Sincronización
             </h5>
             <button type="button" class="custom-btn-close" data-dismiss="modal">&times;</button>
         </div>
@@ -40,7 +39,7 @@
             </div>
 
             <div style="margin-top: 16px; color: var(--gray); font-size: 13px;">
-                <i class="fas fa-info-circle"></i> Esta operación puede tardar unos segundos.
+                <x-heroicon-o-information-circle style="width:1em; height:1em; vertical-align:-0.125em;" /> Esta operación puede tardar unos segundos.
             </div>
         </div>
         <div class="custom-modal-footer">
@@ -96,14 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @if(empty($standings))
 <div class="form-card text-center" style="padding: 40px; color: var(--gray);">
-    <i class="fas fa-flag-checkered" style="font-size: 32px; margin-bottom: 16px;"></i>
+    <x-heroicon-o-flag style="width:1em; height:1em; vertical-align:-0.125em; font-size: 32px; margin-bottom: 16px;" />
     <p style="margin: 0;">Todavía no hay resultados cargados para calcular la clasificación.</p>
 </div>
 @else
 <div class="tbl-wrap" style="margin-top: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--black); border-bottom: 1px solid var(--carbon);">
         <h5 style="margin: 0; font-family: var(--font-oswald); font-size: 16px; text-transform: uppercase;">
-            <i class="fas fa-trophy" style="margin-right: 8px;"></i> Tabla de Posiciones
+            <x-heroicon-o-trophy style="width:1em; height:1em; vertical-align:-0.125em; margin-right: 8px;" /> Tabla de Posiciones
         </h5>
         <span style="font-size: 12px; color: var(--gray); font-family: var(--font-sans);">
             {{ count($standings) }} PILOTOS
@@ -157,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         @if($fd['excluido_evento'])
                             <span class="badge" style="background: var(--racing); color: var(--white); font-size: 10px;">EXC</span>
                         @else
-                            <a href="{{ route('admin.resultados.index', ['fecha_id' => $fecha->id, 'piloto_id' => $piloto->id]) }}" style="text-decoration: none;">
+                            <a href="{{ route('admin.resultados.index', ['fecha_id' => $fecha->id, 'piloto_id' => $piloto?->id]) }}" style="text-decoration: none;">
                                 <span style="display: block; font-weight: 600; color: var(--white);">{{ $fd['total'] }}</span>
                                 <span style="display: block; color: var(--gray); font-size: 10px; margin-top: 2px;">
                                     @if($fd['presentacion']) P:{{ $fd['presentacion'] }} @endif

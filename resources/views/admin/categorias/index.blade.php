@@ -14,13 +14,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
                 <input type="text" id="catSearch" placeholder="Buscar categoría…" autocomplete="off" />
             </div>
-            <a href="{{ route('admin.categorias.create') }}" class="btn sm" style="margin-top:8px;">+ Nueva</a>
+            <a href="{{ route('admin.categorias.create') }}" class="btn sm">+ Nueva</a>
         </div>
     </div>
     <div class="checker-strip dim"></div>
     <div class="cat-list" id="catList">
         @foreach($categorias as $index => $categoria)
-        <a href="{{ route('admin.categorias.show', $categoria->id) }}" class="band show" style="text-decoration:none;">
+        <a href="{{ route('admin.categorias.show', $categoria->id) }}" class="band show" style="text-decoration:none; animation-delay: {{ $index * 0.06 }}s;">
             <div class="speed"></div>
             <div class="ghost">{{ strtoupper(substr($categoria->nombre, 0, 2)) }}</div>
             <div class="inner">

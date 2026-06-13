@@ -11,7 +11,7 @@
                 'type' => 'text',
                 'value' => $fecha->nombre,
                 'width' => 8,
-                'icon' => 'fas fa-calendar-alt'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Duración',
@@ -20,7 +20,7 @@
                     ? \Carbon\Carbon::parse($fecha->fecha_desde)->diffInDays(\Carbon\Carbon::parse($fecha->fecha_hasta)) + 1 . ' días'
                     : '—',
                 'width' => 4,
-                'icon' => 'fas fa-clock'
+                'icon' => 'clock'
             ],
             [
                 'label' => 'Fecha Desde',
@@ -29,7 +29,7 @@
                 'format' => 'd/m/Y',
                 'showRelative' => true,
                 'width' => 6,
-                'icon' => 'fas fa-calendar-plus'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Fecha Hasta',
@@ -38,21 +38,21 @@
                 'format' => 'd/m/Y',
                 'showRelative' => true,
                 'width' => 6,
-                'icon' => 'fas fa-calendar-minus'
+                'icon' => 'calendar-days'
             ],
             [
                 'label' => 'Circuito',
                 'type' => 'text',
                 'value' => $fecha->circuito->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-road'
+                'icon' => 'map'
             ],
             [
                 'label' => 'Campeonato',
                 'type' => 'text',
                 'value' => $fecha->campeonato->nombre ?? '—',
                 'width' => 6,
-                'icon' => 'fas fa-trophy'
+                'icon' => 'trophy'
             ],
         ],
         'actions' => [
@@ -61,19 +61,19 @@
                 'label' => 'Editar',
                 'route' => route('admin.fechas.edit', $fecha),
                 'class' => 'primary',
-                'icon' => 'fas fa-edit'
+                'icon' => 'pencil-square'
             ],
             [
                 'type' => 'link',
                 'label' => 'Resultados',
                 'route' => route('admin.fechas.resultados', $fecha),
                 'class' => 'primary',
-                'icon' => 'fas fa-list-ol'
+                'icon' => 'list-bullet'
             ],
             [
                 'type' => 'button',
                 'label' => 'Eliminar',
-                'icon' => 'fas fa-trash',
+                'icon' => 'trash',
                 'class' => 'destructive',
                 'data' => [
                     'bs-toggle' => 'modal',
@@ -87,23 +87,27 @@
                 'label' => $fecha->sistemaPuntaje()->exists() ? 'Puntaje personalizado' : 'Personalizar puntaje',
                 'route' => route('admin.fechas.scoring', $fecha),
                 'class' => 'ghost',
-                'icon' => 'fas fa-sliders'
+                'icon' => 'adjustments-horizontal'
             ],
             [
                 'type' => 'link',
                 'label' => 'Volver a la lista',
                 'route' => route('admin.fechas.index'),
                 'class' => 'ghost',
-                'icon' => 'fas fa-arrow-left'
+                'icon' => 'arrow-left'
             ]
         ]
     ])
 
 {{-- Session Action Buttons --}}
 <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="{{ route('admin.sesiones.create') }}?fecha_id={{ $fecha->id }}" class="btn" style="background: var(--white); color: var(--black);">
+        <x-heroicon-o-plus style="width:1em; height:1em; vertical-align:-0.125em;" /> Agregar Sesión
+    </a>
+    
     @if($sesionesPendientes > 0)
     <button type="button" class="btn ghost" data-bs-toggle="modal" data-bs-target="#generarSesionesModal">
-        <i class="fas fa-magic"></i> Crear Sesiones Estándar
+        <x-heroicon-o-sparkles style="width:1em; height:1em; vertical-align:-0.125em;" /> Crear Sesiones Estándar
         @if($fecha->sesiones->isNotEmpty())
             <span class="badge" style="background: var(--carbon); color: var(--bone); border: 1px solid var(--line); margin-left: 8px;">{{ $sesionesPendientes }} pendientes</span>
         @endif
@@ -111,8 +115,8 @@
     @endif
 
     @if($fecha->sesiones->isNotEmpty())
-    <button type="button" class="btn ghost" style="color: var(--racing); border-color: var(--racing);" data-bs-toggle="modal" data-bs-target="#eliminarSesionesModal">
-        <i class="fas fa-trash"></i> Eliminar Sesiones
+    <button type="button" class="btn danger" data-bs-toggle="modal" data-bs-target="#eliminarSesionesModal">
+        <x-heroicon-o-trash style="width:1em; height:1em; vertical-align:-0.125em;" /> Eliminar Sesiones
     </button>
     @endif
 </div>
@@ -123,7 +127,7 @@
     <div class="custom-modal-content">
         <div class="custom-modal-header">
             <h5 class="custom-modal-title">
-                <i class="fas fa-magic" style="color: var(--white); margin-right: 8px;"></i> Crear Sesiones Estándar
+                <x-heroicon-o-sparkles style="width:1em; height:1em; vertical-align:-0.125em; color: var(--white); margin-right: 8px;" /> Crear Sesiones Estándar
             </h5>
             <button type="button" class="custom-btn-close" data-dismiss="modal">&times;</button>
         </div>
@@ -137,7 +141,7 @@
                 </ul>
             </div>
             <div style="margin-top: 16px; color: var(--gray); font-size: 13px;">
-                <i class="fas fa-info-circle"></i> Se crearán con sus horarios predefinidos basándose en los días de la fecha.
+                <x-heroicon-o-information-circle style="width:1em; height:1em; vertical-align:-0.125em;" /> Se crearán con sus horarios predefinidos basándose en los días de la fecha.
             </div>
         </div>
         <div class="custom-modal-footer">
@@ -145,7 +149,7 @@
                 Cancelar
             </button>
             <button type="button" class="btn" style="background: var(--white); color: var(--black);" id="confirmGenerarSesiones">
-                <i class="fas fa-check"></i> Confirmar
+                <x-heroicon-o-check style="width:1em; height:1em; vertical-align:-0.125em;" /> Confirmar
             </button>
         </div>
     </div>
@@ -175,14 +179,14 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="custom-modal-content">
         <div class="custom-modal-header">
             <h5 class="custom-modal-title">
-                <i class="fas fa-exclamation-triangle" style="color: var(--racing); margin-right: 8px;"></i> Eliminar Sesiones
+                <x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color: var(--racing); margin-right: 8px;" /> Eliminar Sesiones
             </h5>
             <button type="button" class="custom-btn-close" data-dismiss="modal">&times;</button>
         </div>
         <div class="custom-modal-body">
             <p style="margin-bottom: 12px; font-size: 15px;">¿Estás seguro de que querés eliminar <strong>todas las sesiones y horarios</strong> de <strong>{{ $fecha->nombre }}</strong>?</p>
             <div style="background-color: rgba(229, 9, 20, 0.1); border: 1px dashed var(--racing); padding: 12px; margin-top: 16px;">
-                <i class="fas fa-info-circle" style="color: var(--racing); margin-right: 8px;"></i>
+                <x-heroicon-o-information-circle style="width:1em; height:1em; vertical-align:-0.125em; color: var(--racing); margin-right: 8px;" />
                 <small style="color: var(--bone);">
                     Esta acción eliminará {{ $fecha->sesiones->count() }} sesiones y sus horarios. No se puede deshacer.
                 </small>
@@ -193,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 Cancelar
             </button>
             <button type="button" class="btn" style="border-color: var(--racing); color: var(--racing);" id="confirmEliminarSesiones">
-                <i class="fas fa-trash"></i> Eliminar Todo
+                <x-heroicon-o-trash style="width:1em; height:1em; vertical-align:-0.125em;" /> Eliminar Todo
             </button>
         </div>
     </div>
@@ -232,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="tbl-wrap" style="margin-top: 32px;">
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--black); border-bottom: 1px solid var(--carbon);">
         <h5 style="margin: 0; font-family: var(--font-oswald); font-size: 16px; text-transform: uppercase;">
-            <i class="fas fa-clock" style="margin-right: 8px;"></i> Sesiones y Horarios
+            <x-heroicon-o-clock style="width:1em; height:1em; vertical-align:-0.125em; margin-right: 8px;" /> Sesiones y Horarios
         </h5>
         <span style="font-size: 12px; color: var(--gray); font-family: var(--font-sans);">
             {{ $fecha->sesiones->count() }} SESIONES
@@ -281,13 +285,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         data-duracion="{{ $horario->duracion ?? '' }}"
                         data-observaciones="{{ $horario->observaciones ?? '' }}"
                         data-label="{{ $sesion->tipoNombre }}">
-                        <i class="fas fa-edit"></i>
+                        <x-heroicon-o-pencil-square style="width:1em; height:1em; vertical-align:-0.125em;" />
                     </button>
-                    <button type="button" class="btn ghost" style="padding: 6px 12px; min-width: 0; color: var(--racing); border-color: transparent;"
+                    <button type="button" class="btn danger" style="padding: 6px 12px; min-width: 0;"
                         title="Eliminar" data-bs-toggle="modal" data-bs-target="#deleteModal"
                         data-delete-url="{{ route('admin.sesiones.destroy', $sesion) }}"
                         data-item-name="la sesión de {{ $sesion->tipoNombre }}">
-                        <i class="fas fa-trash-alt"></i>
+                        <x-heroicon-o-trash style="width:1em; height:1em; vertical-align:-0.125em;" />
                     </button>
                 </td>
             </tr>
@@ -301,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="custom-modal-content">
         <div class="custom-modal-header">
             <h5 class="custom-modal-title">
-                <i class="fas fa-edit" style="color: var(--white); margin-right: 8px;"></i> Editar Sesión: <span id="editSesionNombre"></span>
+                <x-heroicon-o-pencil-square style="width:1em; height:1em; vertical-align:-0.125em; color: var(--white); margin-right: 8px;" /> Editar Sesión: <span id="editSesionNombre"></span>
             </h5>
             <button type="button" class="custom-btn-close" data-dismiss="modal">&times;</button>
         </div>
@@ -340,7 +344,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Custom Modal Handling is global, but we need to populate data BEFORE it shows
+    const editModal = document.getElementById('editSesionModal');
+    
     document.addEventListener('click', function(e) {
         const toggleBtn = e.target.closest('[data-bs-target="#editSesionModal"]');
         if (toggleBtn) {
@@ -350,8 +355,23 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editDuracion').value = toggleBtn.dataset.duracion;
             document.getElementById('editObservaciones').value = toggleBtn.dataset.observaciones;
             document.getElementById('editSesionForm').action = toggleBtn.dataset.horarioUrl;
+            
+            if (editModal) editModal.classList.add('show');
+        }
+
+        const dismissBtn = e.target.closest('#editSesionModal [data-dismiss="modal"]');
+        if (dismissBtn && editModal) {
+            editModal.classList.remove('show');
         }
     });
+
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                editModal.classList.remove('show');
+            }
+        });
+    }
 });
 </script>
 @endif

@@ -11,7 +11,7 @@
         @include('components.admin.form', [
             'title' => 'Información del Resultado',
             'action' => route('admin.resultados.store'),
-            'cancelRoute' => route('admin.resultados.index'),
+            'cancelRoute' => $cancelRoute ?? route('admin.dashboard'),
             'fields' => [
                 [
                     'name' => 'sesion_id',
