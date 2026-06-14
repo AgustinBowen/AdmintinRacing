@@ -99,7 +99,7 @@ class ResultadoSesionController extends Controller
     {
         $fechas = \App\Models\Fecha::with('campeonato')
             ->where('campeonato_id', session('campeonato_id'))
-            ->orderBy('created_at', 'desc')
+            ->orderBy('fecha_desde', 'desc')
             ->get();
             
         $fechaIds = $fechas->pluck('id');
