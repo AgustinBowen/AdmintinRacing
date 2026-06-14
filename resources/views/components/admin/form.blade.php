@@ -155,6 +155,20 @@
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
+
+        // Prevenir doble click en formularios
+        $('form').on('submit', function() {
+            var $form = $(this);
+            if ($form.data('submitted') === true) {
+                // Si ya se envió, prevenir que vuelva a mandarse
+                return false;
+            }
+            $form.data('submitted', true);
+            var $btn = $form.find('button[type="submit"]');
+            $btn.css('opacity', '0.7');
+            $btn.html('GUARDANDO...');
+            return true;
+        });
     });
 </script>
 @endpush

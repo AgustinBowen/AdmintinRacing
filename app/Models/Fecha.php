@@ -46,4 +46,23 @@ class Fecha extends Model
     {
         return $this->hasMany(SistemaPuntajeFecha::class, 'fecha_id');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($fecha) {
+            // Eliminar sesiones una por una para que disparen sus propios eventos (como borrar resultados y horarios de cada sesion)
+            $fecha->sesiones->each->delete();
+            
+            // Eliminar los horarios directamente atados a la fecha
+            $fecha->horarios()->delete();
+            
+            // Eliminar imagenes
+            $fecha->imagenes()->delete();
+            
+            // Eliminar sistema de puntaje particular de esta fecha
+            $fecha->sistemaPuntaje()->delete();
+        });
+    }
 }
