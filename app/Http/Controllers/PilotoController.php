@@ -255,10 +255,24 @@ class PilotoController extends Controller
         ]);
 
         if ($campeonatoId) {
+            $numero = $validated['numero_auto'] ?? 0;
+
+            $numeroTomado = \Illuminate\Support\Facades\DB::table('pilotos_campeonato')
+                ->where('campeonato_id', $campeonatoId)
+                ->where('numero_auto', $numero)
+                ->where('piloto_id', '!=', $piloto->id)
+                ->exists();
+
+            if ($numeroTomado) {
+                return response()->json([
+                    'message' => 'El número ' . $numero . ' ya está siendo usado por otro piloto.'
+                ], 422);
+            }
+
             $piloto->campeonatos()->syncWithoutDetaching([
                 $campeonatoId => [
                     'id' => \Illuminate\Support\Str::uuid()->toString(),
-                    'numero_auto' => $validated['numero_auto'] ?? 0
+                    'numero_auto' => $numero
                 ]
             ]);
         }

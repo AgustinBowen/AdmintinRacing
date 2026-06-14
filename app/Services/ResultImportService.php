@@ -33,7 +33,7 @@ class ResultImportService
                 'sector_1'           => TimeHelper::timeToSeconds($item['sector_1'] ?? null),
                 'sector_2'           => TimeHelper::timeToSeconds($item['sector_2'] ?? null),
                 'sector_3'           => TimeHelper::timeToSeconds($item['sector_3'] ?? null),
-                'excluido'           => (isset($item['posicion']) && strtoupper(trim($item['posicion'])) === 'EX') ? true : false,
+                'excluido'           => (isset($item['posicion']) && strtoupper(trim($item['posicion'])) === 'EX') ? 'true' : 'false',
             ]);
             $guardados++;
         }
