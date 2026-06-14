@@ -208,9 +208,9 @@
         if (!iconDiv) return;
         
         if (select.value === '') {
-            iconDiv.innerHTML = '<x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color:var(--racing);" />';
+            iconDiv.innerHTML = `<x-heroicon-o-exclamation-triangle style="width:1em; height:1em; vertical-align:-0.125em; color:var(--racing);" />`;
         } else {
-            iconDiv.innerHTML = '<x-heroicon-o-check-circle style="width:1em; height:1em; vertical-align:-0.125em; color:#22c55e;" />';
+            iconDiv.innerHTML = `<x-heroicon-o-check-circle style="width:1em; height:1em; vertical-align:-0.125em; color:#22c55e;" />`;
         }
     }
 
